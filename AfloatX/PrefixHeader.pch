@@ -1,0 +1,16 @@
+//
+//  PrefixHeader.pch
+//  AfloatX
+//
+//  Created by j on 10/11/19.
+//Copyright © 2019 j. All rights reserved.
+//
+
+#ifndef AfloatX_PrefixHeader_pch
+#define AfloatX_PrefixHeader_pch
+
+#import <Cocoa/Cocoa.h>
+#import "ZKSwizzle.h"
+
+#endif
+
