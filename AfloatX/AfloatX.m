@@ -161,7 +161,9 @@ BOOL menuInjected;
     if (menuInjected) {
         [AfloatXMenu removeItem:AfloatXItem];
         AfloatXMenu = ZKOrig(NSMenu*, sender);
-        [AfloatXMenu addItem:[NSMenuItem separatorItem]];
+        // Only add a separator if last item isn't already a separator
+        if (!AfloatXMenu.itemArray.lastObject.isSeparatorItem)
+            [AfloatXMenu addItem:[NSMenuItem separatorItem]];
         [AfloatXMenu addItem:AfloatXItem];
     }
     return AfloatXMenu;
