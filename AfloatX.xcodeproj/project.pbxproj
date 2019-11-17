@@ -305,6 +305,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1.0.3;
 				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = 6LAE5ASX7M;
 				DSTROOT = /;
@@ -314,6 +315,7 @@
 				INFOPLIST_FILE = AfloatX/Info.plist;
 				INSTALL_PATH = "/Library/Application Support/MacEnhance/Plugins";
 				MACH_O_TYPE = mh_dylib;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.jslegendre.AfloatX;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = bundle;
@@ -327,6 +329,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1.0.3;
 				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = 6LAE5ASX7M;
 				DSTROOT = /;
@@ -336,6 +339,7 @@
 				INFOPLIST_FILE = AfloatX/Info.plist;
 				INSTALL_PATH = "/Library/Application Support/MacEnhance/Plugins";
 				MACH_O_TYPE = mh_dylib;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.jslegendre.AfloatX;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = bundle;
