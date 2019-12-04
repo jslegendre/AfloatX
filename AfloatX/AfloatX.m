@@ -17,7 +17,6 @@ NSMenuItem *AfloatXItem;
 NSMenu *AfloatXSubmenu;
 NSMenuItem *floatItem;
 NSMenuItem *dropItem;
-NSMenuItem *resetItem;
 NSMenuItem *transparencyItem;
 NSMenu *transparencyItemSubMenu;
 NSMenuItem *moreTransparentItem;
@@ -81,16 +80,20 @@ BOOL menuInjected;
     }
 }
 
-- (void)floatMainWindow {
-    [[self windowToModify] setLevel:NSFloatingWindowLevel];
+- (void)toggleFloatMainWindow {
+    if([[self windowToModify] level] == NSFloatingWindowLevel) {
+        [[self windowToModify] setLevel:NSNormalWindowLevel];
+    } else {
+        [[self windowToModify] setLevel:NSFloatingWindowLevel];
+    }
 }
 
-- (void)dropMainWindow {
-    [[self windowToModify] setLevel:kCGBackstopMenuLevel];
-}
-
-- (void)resetMainWindow {
-    [[self windowToModify] setLevel:NSNormalWindowLevel];
+- (void)toggleDropMainWindow {
+    if([[self windowToModify] level] == kCGBackstopMenuLevel) {
+        [[self windowToModify] setLevel:NSNormalWindowLevel];
+    } else {
+        [[self windowToModify] setLevel:kCGBackstopMenuLevel];
+    }
 }
 
 - (void)moreTransparentMainWindow {
@@ -117,12 +120,13 @@ BOOL menuInjected;
     AfloatXItem.title = @"AfloatX";
     AfloatXSubmenu = [NSMenu new];
     AfloatXItem.submenu = AfloatXSubmenu;
-    floatItem = [[NSMenuItem alloc] initWithTitle:@"Float Window" action:@selector(floatMainWindow) keyEquivalent:@""];
+    
+    floatItem = [[NSMenuItem alloc] initWithTitle:@"Float Window" action:@selector(toggleFloatMainWindow) keyEquivalent:@""];
     [floatItem setTarget:plugin];
-    dropItem = [[NSMenuItem alloc] initWithTitle:@"Drop Window" action:@selector(dropMainWindow) keyEquivalent:@""];
+    
+    dropItem = [[NSMenuItem alloc] initWithTitle:@"Drop Window" action:@selector(toggleDropMainWindow) keyEquivalent:@""];
     [dropItem setTarget:plugin];
-    resetItem = [[NSMenuItem alloc] initWithTitle:@"Reset Window" action:@selector(resetMainWindow) keyEquivalent:@""];
-    [resetItem setTarget:plugin];
+    
     transientItem = [[NSMenuItem alloc] initWithTitle:@"Transient Window" action:@selector(toggleTransientMainWindow) keyEquivalent:@""];
     [transientItem setTarget:plugin];
     
@@ -131,16 +135,19 @@ BOOL menuInjected;
     transparencyItemSubMenu = [NSMenu new];
     transparencyItem.submenu = transparencyItemSubMenu;
     
-    NSString *s = [NSString stringWithFormat:@"T%C", 0x001f];
-    moreTransparentItem = [[NSMenuItem alloc] initWithTitle:@"More Transparent" action:@selector(moreTransparentMainWindow) keyEquivalent:s];
+    moreTransparentItem = [[NSMenuItem alloc] initWithTitle:@"More Transparent" action:@selector(moreTransparentMainWindow) keyEquivalent:@""];
     [moreTransparentItem setTarget:plugin];
     
-    s = [NSString stringWithFormat:@"T%C", 0x001e];
-    lessTransparentItem = [[NSMenuItem alloc] initWithTitle:@"Less Transparent" action:@selector(lessTransparentMainWindow) keyEquivalent:s];
+    lessTransparentItem = [[NSMenuItem alloc] initWithTitle:@"Less Transparent" action:@selector(lessTransparentMainWindow) keyEquivalent:@""];
     [lessTransparentItem setTarget:plugin];
+    
     [transparencyItemSubMenu setItemArray:@[moreTransparentItem, lessTransparentItem]];
 
-    afloatXItems = [[NSArray alloc] initWithObjects:floatItem, dropItem, transparencyItem, nil];
+    afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
+                                                    dropItem,
+                                                    transientItem,
+                                                    transparencyItem,
+                                                    nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
     
     // If the application has a custom dock menu, we will add ourselves to that
@@ -175,6 +182,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
 - (CFArrayRef)_flattenMenu:(NSMenu *)arg1 flatList:(NSArray *)arg2 {
     // Make any necessary changes to our menu before it is 'flattened'
     NSWindow *window = [[AfloatX sharedInstance] windowToModify];
+    
     if([[AfloatX sharedInstance] isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
     } else {
@@ -183,15 +191,15 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     
     if([window level] != NSNormalWindowLevel) {
         if([window level] == kCGBackstopMenuLevel) {
-            afloatXItems = @[floatItem, resetItem, transientItem, transparencyItem];
+            [dropItem setState:NSControlStateValueOn];
         } else if([window level] == NSFloatingWindowLevel) {
-            afloatXItems = @[resetItem, dropItem, transientItem, transparencyItem];
+            [floatItem setState:NSControlStateValueOn];
         }
     } else {
-        afloatXItems = @[floatItem, dropItem, transientItem, transparencyItem];
+        [dropItem setState:NSControlStateValueOff];
+        [floatItem setState:NSControlStateValueOff];
     }
-
-    [AfloatXSubmenu setItemArray:afloatXItems];
+    
     return ZKOrig(CFArrayRef, arg1, arg2);
 }
 @end
