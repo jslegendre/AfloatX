@@ -101,7 +101,8 @@ BOOL menuInjected;
 
 - (BOOL)isWindowTransient:(NSWindow *)window {
     NSUInteger collectionBehavior = [window collectionBehavior];
-    if ((NSWindowCollectionBehaviorTransient & collectionBehavior) == NSWindowCollectionBehaviorTransient) {
+    if ((NSWindowCollectionBehaviorMoveToActiveSpace & collectionBehavior) ==
+        NSWindowCollectionBehaviorMoveToActiveSpace) {
         return YES;
     }
     return NO;
@@ -110,10 +111,10 @@ BOOL menuInjected;
 - (void)toggleTransientMainWindow {
     if(![self isWindowTransient:[self windowToModify]]) {
         [[self windowToModify] setCollectionBehavior:
-            ([[self windowToModify] collectionBehavior] | NSWindowCollectionBehaviorTransient)];
+            ([[self windowToModify] collectionBehavior] | NSWindowCollectionBehaviorMoveToActiveSpace)];
     } else {
         [[self windowToModify] setCollectionBehavior:
-            ([[self windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorTransient)];
+            ([[self windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorMoveToActiveSpace)];
     }
 }
 
