@@ -7,6 +7,7 @@
 //
 
 @import AppKit;
+@import CoreImage.CIFilter;
 #import "AfloatX.h"
 #import "ZKSwizzle.h"
 #import <objc/runtime.h>
@@ -22,7 +23,9 @@ NSMenu *transparencyItemSubMenu;
 NSMenuItem *moreTransparentItem;
 NSMenuItem *lessTransparentItem;
 NSMenuItem *transientItem;
+NSMenuItem *invertColorItem;
 NSArray *afloatXItems;
+CIFilter* colorInvertFilter;
 BOOL menuInjected;
 
 @interface AfloatX()
@@ -52,6 +55,39 @@ BOOL menuInjected;
     return window;
 }
 
+/*
+ Convenience methods for setting/removing filters. Will keep the process of setting
+ filters streamlined.
+ */
+- (void)addFilter:(CIFilter *)filter toWindow:(NSWindow *)window {
+    NSMutableArray *filters = [[[window.contentView superview] contentFilters] mutableCopy];
+    [filters addObject:filter];
+    [[window.contentView superview] setContentFilters:[filters copy]];
+}
+
+- (void)removeFilter:(CIFilter *)filter fromWindow:(NSWindow *)window {
+    NSMutableArray *filters = [[[window.contentView superview] contentFilters] mutableCopy];
+    for (CIFilter *f in filters) {
+        if([f isEqual:filter])
+            [filters removeObject:f];
+    }
+    [[window.contentView superview] setContentFilters:[filters copy]];
+}
+
+- (CGWindowLevel)getCGWindowLevelForWindow:(NSWindow *)window {
+    int32_t windowLevel = 0;
+    CGSGetWindowLevel(CGSMainConnectionID(), (unsigned int)[window windowNumber], &windowLevel);
+    return windowLevel;
+}
+
+/*
+ Use private Core Graphics API to set window level so the windows' collection
+ behavior is not affected. setWindow:toLevel is just a convenience method.
+*/
+- (void)setWindow:(NSWindow *)window toLevel:(CGWindowLevel)level {
+    CGSSetWindowLevel(CGSMainConnectionID(), (unsigned int)([window windowNumber]), level);
+}
+
  /*
   * Blocks all mouse/keyboard actions. Not really worth implementing IMO, but it's here if you want to
 - (void)blockMainWindow {
@@ -64,7 +100,8 @@ BOOL menuInjected;
 */
 
 - (BOOL)isWindowTransient:(NSWindow *)window {
-    if ((NSWindowCollectionBehaviorTransient & [window collectionBehavior]) == NSWindowCollectionBehaviorTransient ) {
+    NSUInteger collectionBehavior = [window collectionBehavior];
+    if ((NSWindowCollectionBehaviorTransient & collectionBehavior) == NSWindowCollectionBehaviorTransient) {
         return YES;
     }
     return NO;
@@ -80,32 +117,49 @@ BOOL menuInjected;
     }
 }
 
-- (void)toggleFloatMainWindow {
-    if([[self windowToModify] level] == NSFloatingWindowLevel) {
-        [[self windowToModify] setLevel:NSNormalWindowLevel];
+- (void)toggleColorInvert {
+    NSWindow *window = [self windowToModify];
+    [[window.contentView superview] setWantsLayer:YES];
+    
+    if (![objc_getAssociatedObject(window, "isColorInverted") boolValue]) {
+        [self addFilter:colorInvertFilter toWindow:window];
+        objc_setAssociatedObject(window, "isColorInverted", [NSNumber numberWithBool:true], OBJC_ASSOCIATION_RETAIN);
     } else {
-        [[self windowToModify] setLevel:NSFloatingWindowLevel];
+        [self removeFilter:colorInvertFilter fromWindow:window];
+        objc_setAssociatedObject(window, "isColorInverted", [NSNumber numberWithBool:false], OBJC_ASSOCIATION_RETAIN);
+    }
+}
+
+- (void)toggleFloatMainWindow {
+    NSWindow *window = [self windowToModify];
+    CGWindowLevel windowLevel = [self getCGWindowLevelForWindow:window];
+    if(windowLevel == kCGFloatingWindowLevel) {
+        [self setWindow:window toLevel:kCGNormalWindowLevel];
+    } else {
+        [self setWindow:window toLevel:kCGFloatingWindowLevel];
     }
 }
 
 - (void)toggleDropMainWindow {
-    if([[self windowToModify] level] == kCGBackstopMenuLevel) {
-        [[self windowToModify] setLevel:NSNormalWindowLevel];
+    NSWindow *window = [self windowToModify];
+    CGWindowLevel windowLevel = [self getCGWindowLevelForWindow:window];
+    if(windowLevel == kCGBackstopMenuLevel) {
+        [self setWindow:window toLevel:kCGNormalWindowLevel];
     } else {
-        [[self windowToModify] setLevel:kCGBackstopMenuLevel];
+        [self setWindow:window toLevel:kCGBackstopMenuLevel];
     }
 }
 
 - (void)moreTransparentMainWindow {
     CGFloat alphaValue = [[self windowToModify] alphaValue];
     alphaValue -= 0.2;
-    [[self windowToModify] setAlphaValue: alphaValue];
+    [[self windowToModify] setAlphaValue:alphaValue];
 }
 
 - (void)lessTransparentMainWindow {
     CGFloat alphaValue = [[self windowToModify] alphaValue];
     alphaValue += 0.2;
-    [[self windowToModify] setAlphaValue: alphaValue];
+    [[self windowToModify] setAlphaValue:alphaValue];
 }
 
 + (void)load {
@@ -113,6 +167,9 @@ BOOL menuInjected;
     NSUInteger osx_ver = [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion;
     NSLog(@"%@ loaded into %@ on macOS 10.%ld", [self class], [[NSBundle mainBundle] bundleIdentifier], (long)osx_ver);
 
+    colorInvertFilter = [CIFilter filterWithName:@"CIColorInvert"];
+    [colorInvertFilter setDefaults];
+    
     menuInjected = NO;
     
     AfloatXMenu = [NSMenu new];
@@ -130,6 +187,9 @@ BOOL menuInjected;
     transientItem = [[NSMenuItem alloc] initWithTitle:@"Transient Window" action:@selector(toggleTransientMainWindow) keyEquivalent:@""];
     [transientItem setTarget:plugin];
     
+    invertColorItem = [[NSMenuItem alloc] initWithTitle:@"Invert Colors" action:@selector(toggleColorInvert) keyEquivalent:@""];
+    [invertColorItem setTarget:plugin];
+    
     transparencyItem = [NSMenuItem new];
     transparencyItem.title = @"Transparency";
     transparencyItemSubMenu = [NSMenu new];
@@ -146,6 +206,7 @@ BOOL menuInjected;
     afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
                                                     dropItem,
                                                     transientItem,
+                                                    invertColorItem,
                                                     transparencyItem,
                                                     nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
@@ -189,15 +250,22 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [transientItem setState:NSControlStateValueOff];
     }
     
-    if([window level] != NSNormalWindowLevel) {
-        if([window level] == kCGBackstopMenuLevel) {
+    CGWindowLevel windowLevel = [[AfloatX sharedInstance] getCGWindowLevelForWindow:window];
+    if(windowLevel != kCGNormalWindowLevel) {
+        if(windowLevel == kCGBackstopMenuLevel) {
             [dropItem setState:NSControlStateValueOn];
-        } else if([window level] == NSFloatingWindowLevel) {
+        } else if(windowLevel == kCGFloatingWindowLevel) {
             [floatItem setState:NSControlStateValueOn];
         }
     } else {
         [dropItem setState:NSControlStateValueOff];
         [floatItem setState:NSControlStateValueOff];
+    }
+    
+    if ([objc_getAssociatedObject(window, "isColorInverted") boolValue]) {
+        [invertColorItem setState:NSControlStateValueOn];
+    } else {
+        [invertColorItem setState:NSControlStateValueOff];
     }
     
     return ZKOrig(CFArrayRef, arg1, arg2);
