@@ -23,6 +23,7 @@ NSMenu *transparencyItemSubMenu;
 NSMenuItem *moreTransparentItem;
 NSMenuItem *lessTransparentItem;
 NSMenuItem *transientItem;
+NSMenuItem *stickyItem;
 NSMenuItem *invertColorItem;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
@@ -108,6 +109,15 @@ BOOL menuInjected;
     return NO;
 }
 
+- (BOOL)isWindowSticky:(NSWindow *)window {
+    NSUInteger collectionBehavior = [window collectionBehavior];
+    if ((NSWindowCollectionBehaviorCanJoinAllSpaces & collectionBehavior) ==
+        NSWindowCollectionBehaviorCanJoinAllSpaces) {
+        return YES;
+    }
+    return NO;
+}
+
 - (void)toggleTransientMainWindow {
     if(![self isWindowTransient:[self windowToModify]]) {
         [[self windowToModify] setCollectionBehavior:
@@ -115,6 +125,16 @@ BOOL menuInjected;
     } else {
         [[self windowToModify] setCollectionBehavior:
             ([[self windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorMoveToActiveSpace)];
+    }
+}
+
+- (void)toggleStickyMainWindow {
+    if(![self isWindowSticky:[self windowToModify]]) {
+        [[self windowToModify] setCollectionBehavior:
+            ([[self windowToModify] collectionBehavior] | NSWindowCollectionBehaviorCanJoinAllSpaces)];
+    } else {
+        [[self windowToModify] setCollectionBehavior:
+            ([[self windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorCanJoinAllSpaces)];
     }
 }
 
@@ -188,6 +208,9 @@ BOOL menuInjected;
     transientItem = [[NSMenuItem alloc] initWithTitle:@"Transient Window" action:@selector(toggleTransientMainWindow) keyEquivalent:@""];
     [transientItem setTarget:plugin];
     
+    stickyItem = [[NSMenuItem alloc] initWithTitle:@"Sticky Window" action:@selector(toggleStickyMainWindow) keyEquivalent:@""];
+    [stickyItem setTarget:plugin];
+    
     invertColorItem = [[NSMenuItem alloc] initWithTitle:@"Invert Colors" action:@selector(toggleColorInvert) keyEquivalent:@""];
     [invertColorItem setTarget:plugin];
     
@@ -206,8 +229,9 @@ BOOL menuInjected;
 
     afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
                                                     dropItem,
-                                                    transientItem,
                                                     invertColorItem,
+                                                    stickyItem,
+                                                    transientItem,
                                                     transparencyItem,
                                                     nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
@@ -249,6 +273,12 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [transientItem setState:NSControlStateValueOn];
     } else {
         [transientItem setState:NSControlStateValueOff];
+    }
+    
+    if([[AfloatX sharedInstance] isWindowSticky:window]) {
+        [stickyItem setState:NSControlStateValueOn];
+    } else {
+        [stickyItem setState:NSControlStateValueOff];
     }
     
     CGWindowLevel windowLevel = [[AfloatX sharedInstance] getCGWindowLevelForWindow:window];
