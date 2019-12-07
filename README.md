@@ -19,4 +19,4 @@ Open an issue here describing a feature you think would fit well.
 I use and recommend [MacForge](https://github.com/w0lfschild/MacForge) for managing plugins.
 
 ## Screenshot
-![AfloatX Screenshot](https://i.imgur.com/fEPgh9u.png)
+<img src="https://i.imgur.com/nQsDuBE.png" width="250"/>  <img src="https://i.imgur.com/nEAwZYa.png" width="300"/>
