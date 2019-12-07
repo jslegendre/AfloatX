@@ -18,5 +18,5 @@ Open an issue here describing a feature you think would fit well.
 ## Install
 I use and recommend [MacForge](https://github.com/w0lfschild/MacForge) for managing plugins.
 
-## Screenshot
-<img src="https://i.imgur.com/nQsDuBE.png" width="250"/>  <img src="https://i.imgur.com/nEAwZYa.png" width="300"/>
+## Screenshots
+<img src="https://i.imgur.com/nQsDuBE.png" width="250"/>  <img src="https://i.imgur.com/nEAwZYa.png" width="322"/>
