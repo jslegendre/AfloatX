@@ -7,15 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09A55408239AE583006CB957 /* WindowTransparencyController.m in Sources */ = {isa = PBXBuildFile; fileRef = 09A55407239AE583006CB957 /* WindowTransparencyController.m */; };
 		09AA55F32350FFBE00356916 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 09AA55F22350FFBE00356916 /* AppKit.framework */; };
 		09AA55F52350FFBE00356916 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 09AA55F42350FFBE00356916 /* Foundation.framework */; };
-		09AA55F92350FFBE00356916 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 09AA55F82350FFBE00356916 /* Info.plist */; };
 		09AA55FC2350FFBE00356916 /* AfloatX.m in Sources */ = {isa = PBXBuildFile; fileRef = 09AA55FB2350FFBE00356916 /* AfloatX.m */; };
 		09AA56002350FFBE00356916 /* ZKSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 09AA55FF2350FFBE00356916 /* ZKSwizzle.m */; };
-		09AA56022350FFBE00356916 /* PrefixHeader.pch in Resources */ = {isa = PBXBuildFile; fileRef = 09AA56012350FFBE00356916 /* PrefixHeader.pch */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09A55406239AE583006CB957 /* WindowTransparencyController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WindowTransparencyController.h; sourceTree = "<group>"; };
+		09A55407239AE583006CB957 /* WindowTransparencyController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WindowTransparencyController.m; sourceTree = "<group>"; };
 		09AA55EF2350FFBE00356916 /* AfloatX.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AfloatX.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		09AA55F22350FFBE00356916 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		09AA55F42350FFBE00356916 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -24,7 +25,6 @@
 		09AA55FB2350FFBE00356916 /* AfloatX.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AfloatX.m; sourceTree = "<group>"; };
 		09AA55FE2350FFBE00356916 /* ZKSwizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZKSwizzle.h; sourceTree = "<group>"; };
 		09AA55FF2350FFBE00356916 /* ZKSwizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZKSwizzle.m; sourceTree = "<group>"; };
-		09AA56012350FFBE00356916 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrefixHeader.pch; path = ../PrefixHeader.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +71,8 @@
 			children = (
 				09AA55FA2350FFBE00356916 /* AfloatX.h */,
 				09AA55FB2350FFBE00356916 /* AfloatX.m */,
+				09A55406239AE583006CB957 /* WindowTransparencyController.h */,
+				09A55407239AE583006CB957 /* WindowTransparencyController.m */,
 				09AA55FD2350FFBE00356916 /* ZKSwizzle */,
 				09AA55F72350FFBE00356916 /* Supporting Files */,
 			);
@@ -81,7 +83,6 @@
 			isa = PBXGroup;
 			children = (
 				09AA55F82350FFBE00356916 /* Info.plist */,
-				09AA56012350FFBE00356916 /* PrefixHeader.pch */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -121,7 +122,7 @@
 		09AA55E72350FFBE00356916 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1110;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = j;
 				TargetAttributes = {
 					09AA55EE2350FFBE00356916 = {
@@ -152,8 +153,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09AA56022350FFBE00356916 /* PrefixHeader.pch in Resources */,
-				09AA55F92350FFBE00356916 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,6 +163,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09A55408239AE583006CB957 /* WindowTransparencyController.m in Sources */,
 				09AA55FC2350FFBE00356916 /* AfloatX.m in Sources */,
 				09AA56002350FFBE00356916 /* ZKSwizzle.m in Sources */,
 			);
@@ -280,11 +280,10 @@
 		09AA56062350FFBE00356916 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.1.0;
+				CURRENT_PROJECT_VERSION = 1.2.8;
 				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = 6LAE5ASX7M;
 				DSTROOT = /;
@@ -294,7 +293,7 @@
 				INFOPLIST_FILE = AfloatX/Info.plist;
 				INSTALL_PATH = "/Library/Application Support/MacEnhance/Plugins";
 				MACH_O_TYPE = mh_dylib;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.jslegendre.AfloatX;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = bundle;
@@ -304,11 +303,10 @@
 		09AA56072350FFBE00356916 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.1.0;
+				CURRENT_PROJECT_VERSION = 1.2.8;
 				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = 6LAE5ASX7M;
 				DSTROOT = /;
@@ -318,7 +316,7 @@
 				INFOPLIST_FILE = AfloatX/Info.plist;
 				INSTALL_PATH = "/Library/Application Support/MacEnhance/Plugins";
 				MACH_O_TYPE = mh_dylib;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.jslegendre.AfloatX;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = bundle;

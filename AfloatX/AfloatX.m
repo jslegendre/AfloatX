@@ -9,19 +9,18 @@
 @import AppKit;
 @import CoreImage.CIFilter;
 #import "AfloatX.h"
+#import "WindowTransparencyController.h"
 #import "ZKSwizzle.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
+WindowTransparencyController *transparencyController;
 NSMenu *AfloatXMenu;
 NSMenuItem *AfloatXItem;
 NSMenu *AfloatXSubmenu;
 NSMenuItem *floatItem;
 NSMenuItem *dropItem;
 NSMenuItem *transparencyItem;
-NSMenu *transparencyItemSubMenu;
-NSMenuItem *moreTransparentItem;
-NSMenuItem *lessTransparentItem;
 NSMenuItem *transientItem;
 NSMenuItem *stickyItem;
 NSMenuItem *invertColorItem;
@@ -171,20 +170,16 @@ BOOL menuInjected;
     }
 }
 
-- (void)moreTransparentMainWindow {
-    CGFloat alphaValue = [[self windowToModify] alphaValue];
-    alphaValue -= 0.2;
-    [[self windowToModify] setAlphaValue:alphaValue];
-}
-
-- (void)lessTransparentMainWindow {
-    CGFloat alphaValue = [[self windowToModify] alphaValue];
-    alphaValue += 0.2;
-    [[self windowToModify] setAlphaValue:alphaValue];
+- (void)showTransparencySheet {
+    [transparencyController runSheetForWindow:[self windowToModify]];
 }
 
 + (void)load {
     AfloatX *plugin = [AfloatX sharedInstance];
+    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", nil];
+    if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
+        return;
+    
     NSUInteger osx_ver = [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion;
     NSLog(@"%@ loaded into %@ on macOS 10.%ld", [self class], [[NSBundle mainBundle] bundleIdentifier], (long)osx_ver);
 
@@ -192,6 +187,8 @@ BOOL menuInjected;
     [colorInvertFilter setDefaults];
     
     menuInjected = NO;
+    
+    transparencyController = [WindowTransparencyController sharedInstance];
     
     AfloatXMenu = [NSMenu new];
     AfloatXItem = [NSMenuItem new];
@@ -214,18 +211,8 @@ BOOL menuInjected;
     invertColorItem = [[NSMenuItem alloc] initWithTitle:@"Invert Colors" action:@selector(toggleColorInvert) keyEquivalent:@""];
     [invertColorItem setTarget:plugin];
     
-    transparencyItem = [NSMenuItem new];
-    transparencyItem.title = @"Transparency";
-    transparencyItemSubMenu = [NSMenu new];
-    transparencyItem.submenu = transparencyItemSubMenu;
-    
-    moreTransparentItem = [[NSMenuItem alloc] initWithTitle:@"More Transparent" action:@selector(moreTransparentMainWindow) keyEquivalent:@""];
-    [moreTransparentItem setTarget:plugin];
-    
-    lessTransparentItem = [[NSMenuItem alloc] initWithTitle:@"Less Transparent" action:@selector(lessTransparentMainWindow) keyEquivalent:@""];
-    [lessTransparentItem setTarget:plugin];
-    
-    [transparencyItemSubMenu setItemArray:@[moreTransparentItem, lessTransparentItem]];
+    transparencyItem = [[NSMenuItem alloc] initWithTitle:@"Transparency..." action:@selector(showTransparencySheet) keyEquivalent:@""];
+    [transparencyItem setTarget:plugin];
 
     afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
                                                     dropItem,
