@@ -5,6 +5,7 @@ An alternative to Afloat that lives in the dock icon menu. Although AfloatX has 
   * Keep window on top (floating window)
   * Keep window on behind all other windows
   * Transient mode: Always come to focus in current space. Won't force you back to that windows last active space
+  * Sticky mode: Window stays visible on all spaces
   * Invert window color
   * Window transparency
   
