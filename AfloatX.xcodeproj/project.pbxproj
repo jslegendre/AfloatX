@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09613B01239DFC9E00E8C657 /* AfloatXIcons.png in Resources */ = {isa = PBXBuildFile; fileRef = 09613B00239DFC9E00E8C657 /* AfloatXIcons.png */; };
 		09A55408239AE583006CB957 /* WindowTransparencyController.m in Sources */ = {isa = PBXBuildFile; fileRef = 09A55407239AE583006CB957 /* WindowTransparencyController.m */; };
 		09AA55F32350FFBE00356916 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 09AA55F22350FFBE00356916 /* AppKit.framework */; };
 		09AA55F52350FFBE00356916 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 09AA55F42350FFBE00356916 /* Foundation.framework */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09613B00239DFC9E00E8C657 /* AfloatXIcons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = AfloatXIcons.png; path = AfloatX/Resources/AfloatXIcons.png; sourceTree = SOURCE_ROOT; };
 		09A55406239AE583006CB957 /* WindowTransparencyController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WindowTransparencyController.h; sourceTree = "<group>"; };
 		09A55407239AE583006CB957 /* WindowTransparencyController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WindowTransparencyController.m; sourceTree = "<group>"; };
 		09AA55EF2350FFBE00356916 /* AfloatX.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AfloatX.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -40,10 +42,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		09613AFF239DFC6400E8C657 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				09613B00239DFC9E00E8C657 /* AfloatXIcons.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		09AA55E62350FFBE00356916 = {
 			isa = PBXGroup;
 			children = (
 				09AA55F62350FFBE00356916 /* AfloatX */,
+				09613AFF239DFC6400E8C657 /* Resources */,
 				09AA55F12350FFBE00356916 /* Frameworks */,
 				09AA55F02350FFBE00356916 /* Products */,
 			);
@@ -153,6 +164,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09613B01239DFC9E00E8C657 /* AfloatXIcons.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

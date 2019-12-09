@@ -82,10 +82,30 @@ BOOL menuInjected;
 
 /*
  Use private Core Graphics API to set window level so the windows' collection
- behavior is not affected. setWindow:toLevel is just a convenience method.
+ behavior is not affected. Unlike -[NSWindow setLevel:], CGSSetWindowLevel only
+ acts on a single window and not any of its child/attached windows so that must
+ be done manually.
 */
 - (void)setWindow:(NSWindow *)window toLevel:(CGWindowLevel)level {
+    if([window attachedSheet])
+        [self setWindow:window.attachedSheet toLevel:level];
+    
+    for(NSWindow *childWindow in [window childWindows])
+        [self setWindow:childWindow toLevel:level];
+    
     CGSSetWindowLevel(CGSMainConnectionID(), (unsigned int)([window windowNumber]), level);
+}
+
+- (BOOL)window:(NSWindow *)window isLevel:(CGWindowLevel)level {
+    CGWindowLevel windowLevel = [self getCGWindowLevelForWindow:window];
+    if(windowLevel == level)
+        return YES;
+    
+    return NO;
+}
+
+- (void)setMainWindowLevel:(CGWindowLevel)level {
+    [self setWindow:[self windowToModify] toLevel:level];
 }
 
  /*
@@ -150,28 +170,35 @@ BOOL menuInjected;
     }
 }
 
+- (BOOL)isMainWindowFloating {
+    return [self window:[self windowToModify] isLevel:kCGFloatingWindowLevel];
+}
+
 - (void)toggleFloatMainWindow {
-    NSWindow *window = [self windowToModify];
-    CGWindowLevel windowLevel = [self getCGWindowLevelForWindow:window];
-    if(windowLevel == kCGFloatingWindowLevel) {
-        [self setWindow:window toLevel:kCGNormalWindowLevel];
+    if([self isMainWindowFloating]) {
+        [self setMainWindowLevel:kCGNormalWindowLevel];
     } else {
-        [self setWindow:window toLevel:kCGFloatingWindowLevel];
+        [self setMainWindowLevel:kCGFloatingWindowLevel];
     }
 }
 
+- (BOOL)isMainWindowDropped {
+    return [self window:[self windowToModify] isLevel:kCGBackstopMenuLevel];
+}
+
 - (void)toggleDropMainWindow {
-    NSWindow *window = [self windowToModify];
-    CGWindowLevel windowLevel = [self getCGWindowLevelForWindow:window];
-    if(windowLevel == kCGBackstopMenuLevel) {
-        [self setWindow:window toLevel:kCGNormalWindowLevel];
+    if([self isMainWindowDropped]) {
+        [self setMainWindowLevel:kCGNormalWindowLevel];
     } else {
-        [self setWindow:window toLevel:kCGBackstopMenuLevel];
+        [self setMainWindowLevel:kCGBackstopMenuLevel];
     }
 }
 
 - (void)showTransparencySheet {
     [transparencyController runSheetForWindow:[self windowToModify]];
+    if([self isMainWindowFloating]) {
+        [self setMainWindowLevel:kCGFloatingWindowLevel];
+    }
 }
 
 + (void)load {
@@ -272,8 +299,10 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     if(windowLevel != kCGNormalWindowLevel) {
         if(windowLevel == kCGBackstopMenuLevel) {
             [dropItem setState:NSControlStateValueOn];
+            [floatItem setState:NSControlStateValueOff];
         } else if(windowLevel == kCGFloatingWindowLevel) {
             [floatItem setState:NSControlStateValueOn];
+            [dropItem setState:NSControlStateValueOff];
         }
     } else {
         [dropItem setState:NSControlStateValueOff];
