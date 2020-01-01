@@ -203,7 +203,7 @@ BOOL menuInjected;
 
 + (void)load {
     AfloatX *plugin = [AfloatX sharedInstance];
-    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", nil];
+    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", @"com.vmware.vmware-vmx", nil];
     if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
         return;
     
