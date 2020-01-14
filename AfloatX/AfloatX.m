@@ -24,6 +24,7 @@ NSMenuItem *transparencyItem;
 NSMenuItem *transientItem;
 NSMenuItem *stickyItem;
 NSMenuItem *invertColorItem;
+NSMenuItem *clickPassthroughItem;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
 BOOL menuInjected;
@@ -78,6 +79,56 @@ BOOL menuInjected;
     int32_t windowLevel = 0;
     CGSGetWindowLevel(CGSMainConnectionID(), (unsigned int)[window windowNumber], &windowLevel);
     return windowLevel;
+}
+
+- (void)getTags:(CGSWindowTag (*)[2])tags forWindow:(NSWindow *)window {
+    CGSGetWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], *tags, 32);
+}
+
+- (void)setTags:(CGSWindowTag [2])tags forWindow:(NSWindow *)window {
+    CGSSetWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], tags, 32);
+}
+
+- (BOOL)window:(NSWindow *)window hasHighTag:(CGSWindowTag)tag {
+    CGSWindowTag tags[2];
+    [self getTags:&tags forWindow:window];
+    if ((tags[1] & tag) == tag) {
+        return YES;
+    }
+    return NO;
+}
+
+- (BOOL)window:(NSWindow *)window hasLowTag:(CGSWindowTag)tag {
+    CGSWindowTag tags[2];
+    [self getTags:&tags forWindow:window];
+    if ((tags[0] & tag) == tag) {
+        return YES;
+    }
+    return NO;
+}
+
+- (void)removeHighTag:(CGSWindowTag)tag fromWindow:(NSWindow *)window {
+    CGSWindowTag tags[2] = { 0, tag };
+    CGSClearWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], tags, 32);
+}
+
+- (void)removeLowTag:(CGSWindowTag)tag fromWindow:(NSWindow *)window {
+    CGSWindowTag tags[2] = { tag, 0 };
+    CGSClearWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], tags, 32);
+}
+
+- (void)addHighTag:(CGSWindowTag)tag toWindow:(NSWindow *)window {
+    CGSWindowTag tags[2];
+    [self getTags:&tags forWindow:window];
+    tags[1] |= tag;
+    [self setTags:tags forWindow:window];
+}
+
+- (void)addLowTag:(CGSWindowTag)tag toWindow:(NSWindow *)window {
+    CGSWindowTag tags[2];
+    [self getTags:&tags forWindow:window];
+    tags[0] |= tag;
+    [self setTags:tags forWindow:window];
 }
 
 /*
@@ -137,6 +188,14 @@ BOOL menuInjected;
     return NO;
 }
 
+- (BOOL)isMainWindowFloating {
+    return [self window:[self windowToModify] isLevel:kCGFloatingWindowLevel];
+}
+
+- (BOOL)isMainWindowDropped {
+    return [self window:[self windowToModify] isLevel:kCGBackstopMenuLevel];
+}
+
 - (void)toggleTransientMainWindow {
     if(![self isWindowTransient:[self windowToModify]]) {
         [[self windowToModify] setCollectionBehavior:
@@ -170,8 +229,13 @@ BOOL menuInjected;
     }
 }
 
-- (BOOL)isMainWindowFloating {
-    return [self window:[self windowToModify] isLevel:kCGFloatingWindowLevel];
+- (void)toggleEventPassthrough {
+    NSWindow *window = [self windowToModify];
+    if([self window:window hasLowTag:CGSTagTransparent]) {
+        [self removeLowTag:CGSTagTransparent fromWindow:window];
+    } else {
+        [self addLowTag:CGSTagTransparent toWindow:window];
+    }
 }
 
 - (void)toggleFloatMainWindow {
@@ -180,10 +244,6 @@ BOOL menuInjected;
     } else {
         [self setMainWindowLevel:kCGFloatingWindowLevel];
     }
-}
-
-- (BOOL)isMainWindowDropped {
-    return [self window:[self windowToModify] isLevel:kCGBackstopMenuLevel];
 }
 
 - (void)toggleDropMainWindow {
@@ -238,6 +298,9 @@ BOOL menuInjected;
     invertColorItem = [[NSMenuItem alloc] initWithTitle:@"Invert Colors" action:@selector(toggleColorInvert) keyEquivalent:@""];
     [invertColorItem setTarget:plugin];
     
+    clickPassthroughItem = [[NSMenuItem alloc] initWithTitle:@"Click-Through Window" action:@selector(toggleEventPassthrough) keyEquivalent:@""];
+    [clickPassthroughItem setTarget:plugin];
+    
     transparencyItem = [[NSMenuItem alloc] initWithTitle:@"Transparency..." action:@selector(showTransparencySheet) keyEquivalent:@""];
     [transparencyItem setTarget:plugin];
 
@@ -246,6 +309,7 @@ BOOL menuInjected;
                                                     invertColorItem,
                                                     stickyItem,
                                                     transientItem,
+                                                    clickPassthroughItem,
                                                     transparencyItem,
                                                     nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
@@ -307,6 +371,12 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     } else {
         [dropItem setState:NSControlStateValueOff];
         [floatItem setState:NSControlStateValueOff];
+    }
+    
+    if([[AfloatX sharedInstance] window:window hasLowTag:CGSTagTransparent]) {
+        [clickPassthroughItem setState:NSControlStateValueOn];
+    } else {
+        [clickPassthroughItem setState:NSControlStateValueOff];
     }
     
     if ([objc_getAssociatedObject(window, "isColorInverted") boolValue]) {

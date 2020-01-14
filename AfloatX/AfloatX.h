@@ -21,6 +21,7 @@ typedef enum {
     CGSTagExposeFade    = 0x0002,   // Fade out when Expose activates.
     CGSTagNoShadow        = 0x0008,   // No window shadow.
     CGSTagTransparent   = 0x0200,   // Transparent to mouse clicks.
+    CGSTagOpaque        = 0x400,    // Opaque to mouse clicks.
     CGSTagSticky        = 0x0800,   // Appears on all workspaces.
 } CGSWindowTag;
 
