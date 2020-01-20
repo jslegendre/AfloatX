@@ -7,9 +7,10 @@
 //
 
 @import AppKit;
-@import CoreImage.CIFilter;
 #import "AfloatX.h"
+#import "AXWindowUtils.h"
 #import "WindowTransparencyController.h"
+#import "WindowOutliningController.h"
 #import "ZKSwizzle.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
@@ -25,6 +26,8 @@ NSMenuItem *transientItem;
 NSMenuItem *stickyItem;
 NSMenuItem *invertColorItem;
 NSMenuItem *clickPassthroughItem;
+NSMenuItem *windowOutlineItem;
+NSMenu *windowOutlineSubmenu;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
 BOOL menuInjected;
@@ -47,116 +50,6 @@ BOOL menuInjected;
         }
     }
     return plugin;
-}
-
-- (NSWindow *)windowToModify {
-    NSWindow *window = [NSApp mainWindow];
-    if(!window)
-        window = objc_msgSend(NSApp, sel_getUid("frontWindow"));
-    return window;
-}
-
-/*
- Convenience methods for setting/removing filters. Will keep the process of setting
- filters streamlined.
- */
-- (void)addFilter:(CIFilter *)filter toWindow:(NSWindow *)window {
-    NSMutableArray *filters = [[[window.contentView superview] contentFilters] mutableCopy];
-    [filters addObject:filter];
-    [[window.contentView superview] setContentFilters:[filters copy]];
-}
-
-- (void)removeFilter:(CIFilter *)filter fromWindow:(NSWindow *)window {
-    NSMutableArray *filters = [[[window.contentView superview] contentFilters] mutableCopy];
-    for (CIFilter *f in filters) {
-        if([f isEqual:filter])
-            [filters removeObject:f];
-    }
-    [[window.contentView superview] setContentFilters:[filters copy]];
-}
-
-- (CGWindowLevel)getCGWindowLevelForWindow:(NSWindow *)window {
-    int32_t windowLevel = 0;
-    CGSGetWindowLevel(CGSMainConnectionID(), (unsigned int)[window windowNumber], &windowLevel);
-    return windowLevel;
-}
-
-- (void)getTags:(CGSWindowTag (*)[2])tags forWindow:(NSWindow *)window {
-    CGSGetWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], *tags, 32);
-}
-
-- (void)setTags:(CGSWindowTag [2])tags forWindow:(NSWindow *)window {
-    CGSSetWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], tags, 32);
-}
-
-- (BOOL)window:(NSWindow *)window hasHighTag:(CGSWindowTag)tag {
-    CGSWindowTag tags[2];
-    [self getTags:&tags forWindow:window];
-    if ((tags[1] & tag) == tag) {
-        return YES;
-    }
-    return NO;
-}
-
-- (BOOL)window:(NSWindow *)window hasLowTag:(CGSWindowTag)tag {
-    CGSWindowTag tags[2];
-    [self getTags:&tags forWindow:window];
-    if ((tags[0] & tag) == tag) {
-        return YES;
-    }
-    return NO;
-}
-
-- (void)removeHighTag:(CGSWindowTag)tag fromWindow:(NSWindow *)window {
-    CGSWindowTag tags[2] = { 0, tag };
-    CGSClearWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], tags, 32);
-}
-
-- (void)removeLowTag:(CGSWindowTag)tag fromWindow:(NSWindow *)window {
-    CGSWindowTag tags[2] = { tag, 0 };
-    CGSClearWindowTags(CGSMainConnectionID(), (unsigned int)[window windowNumber], tags, 32);
-}
-
-- (void)addHighTag:(CGSWindowTag)tag toWindow:(NSWindow *)window {
-    CGSWindowTag tags[2];
-    [self getTags:&tags forWindow:window];
-    tags[1] |= tag;
-    [self setTags:tags forWindow:window];
-}
-
-- (void)addLowTag:(CGSWindowTag)tag toWindow:(NSWindow *)window {
-    CGSWindowTag tags[2];
-    [self getTags:&tags forWindow:window];
-    tags[0] |= tag;
-    [self setTags:tags forWindow:window];
-}
-
-/*
- Use private Core Graphics API to set window level so the windows' collection
- behavior is not affected. Unlike -[NSWindow setLevel:], CGSSetWindowLevel only
- acts on a single window and not any of its child/attached windows so that must
- be done manually.
-*/
-- (void)setWindow:(NSWindow *)window toLevel:(CGWindowLevel)level {
-    if([window attachedSheet])
-        [self setWindow:window.attachedSheet toLevel:level];
-    
-    for(NSWindow *childWindow in [window childWindows])
-        [self setWindow:childWindow toLevel:level];
-    
-    CGSSetWindowLevel(CGSMainConnectionID(), (unsigned int)([window windowNumber]), level);
-}
-
-- (BOOL)window:(NSWindow *)window isLevel:(CGWindowLevel)level {
-    CGWindowLevel windowLevel = [self getCGWindowLevelForWindow:window];
-    if(windowLevel == level)
-        return YES;
-    
-    return NO;
-}
-
-- (void)setMainWindowLevel:(CGWindowLevel)level {
-    [self setWindow:[self windowToModify] toLevel:level];
 }
 
  /*
@@ -189,81 +82,81 @@ BOOL menuInjected;
 }
 
 - (BOOL)isMainWindowFloating {
-    return [self window:[self windowToModify] isLevel:kCGFloatingWindowLevel];
+    return [AXWindowUtils window:[AXWindowUtils windowToModify] isLevel:kCGFloatingWindowLevel];
 }
 
 - (BOOL)isMainWindowDropped {
-    return [self window:[self windowToModify] isLevel:kCGBackstopMenuLevel];
+    return [AXWindowUtils window:[AXWindowUtils windowToModify] isLevel:kCGBackstopMenuLevel];
 }
 
 - (void)toggleTransientMainWindow {
-    if(![self isWindowTransient:[self windowToModify]]) {
-        [[self windowToModify] setCollectionBehavior:
-            ([[self windowToModify] collectionBehavior] | NSWindowCollectionBehaviorMoveToActiveSpace)];
+    if(![self isWindowTransient:[AXWindowUtils windowToModify]]) {
+        [[AXWindowUtils windowToModify] setCollectionBehavior:
+            ([[AXWindowUtils windowToModify] collectionBehavior] | NSWindowCollectionBehaviorMoveToActiveSpace)];
     } else {
-        [[self windowToModify] setCollectionBehavior:
-            ([[self windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorMoveToActiveSpace)];
+        [[AXWindowUtils windowToModify] setCollectionBehavior:
+            ([[AXWindowUtils windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorMoveToActiveSpace)];
     }
 }
 
 - (void)toggleStickyMainWindow {
-    if(![self isWindowSticky:[self windowToModify]]) {
-        [[self windowToModify] setCollectionBehavior:
-            ([[self windowToModify] collectionBehavior] | NSWindowCollectionBehaviorCanJoinAllSpaces)];
+    if(![self isWindowSticky:[AXWindowUtils windowToModify]]) {
+        [[AXWindowUtils windowToModify] setCollectionBehavior:
+            ([[AXWindowUtils windowToModify] collectionBehavior] | NSWindowCollectionBehaviorCanJoinAllSpaces)];
     } else {
-        [[self windowToModify] setCollectionBehavior:
-            ([[self windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorCanJoinAllSpaces)];
+        [[AXWindowUtils windowToModify] setCollectionBehavior:
+            ([[AXWindowUtils windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorCanJoinAllSpaces)];
     }
 }
 
 - (void)toggleColorInvert {
-    NSWindow *window = [self windowToModify];
+    NSWindow *window = [AXWindowUtils windowToModify];
     [[window.contentView superview] setWantsLayer:YES];
     
     if (![objc_getAssociatedObject(window, "isColorInverted") boolValue]) {
-        [self addFilter:colorInvertFilter toWindow:window];
+        [AXWindowUtils addFilter:colorInvertFilter toWindow:window];
         objc_setAssociatedObject(window, "isColorInverted", [NSNumber numberWithBool:true], OBJC_ASSOCIATION_RETAIN);
     } else {
-        [self removeFilter:colorInvertFilter fromWindow:window];
+        [AXWindowUtils removeFilter:colorInvertFilter fromWindow:window];
         objc_setAssociatedObject(window, "isColorInverted", [NSNumber numberWithBool:false], OBJC_ASSOCIATION_RETAIN);
     }
 }
 
 - (void)toggleEventPassthrough {
-    NSWindow *window = [self windowToModify];
-    if([self window:window hasLowTag:CGSTagTransparent]) {
-        [self removeLowTag:CGSTagTransparent fromWindow:window];
+    NSWindow *window = [AXWindowUtils windowToModify];
+    if([AXWindowUtils window:window hasLowTag:CGSTagTransparent]) {
+        [AXWindowUtils removeLowTag:CGSTagTransparent fromWindow:window];
     } else {
-        [self addLowTag:CGSTagTransparent toWindow:window];
+        [AXWindowUtils addLowTag:CGSTagTransparent toWindow:window];
     }
 }
 
 - (void)toggleFloatMainWindow {
     if([self isMainWindowFloating]) {
-        [self setMainWindowLevel:kCGNormalWindowLevel];
+        [AXWindowUtils setMainWindowLevel:kCGNormalWindowLevel];
     } else {
-        [self setMainWindowLevel:kCGFloatingWindowLevel];
+        [AXWindowUtils setMainWindowLevel:kCGFloatingWindowLevel];
     }
 }
 
 - (void)toggleDropMainWindow {
     if([self isMainWindowDropped]) {
-        [self setMainWindowLevel:kCGNormalWindowLevel];
+        [AXWindowUtils setMainWindowLevel:kCGNormalWindowLevel];
     } else {
-        [self setMainWindowLevel:kCGBackstopMenuLevel];
+        [AXWindowUtils setMainWindowLevel:kCGBackstopMenuLevel];
     }
 }
 
 - (void)showTransparencySheet {
-    [transparencyController runSheetForWindow:[self windowToModify]];
+    [transparencyController runSheetForWindow:[AXWindowUtils windowToModify]];
     if([self isMainWindowFloating]) {
-        [self setMainWindowLevel:kCGFloatingWindowLevel];
+        [AXWindowUtils setMainWindowLevel:kCGFloatingWindowLevel];
     }
 }
 
 + (void)load {
     AfloatX *plugin = [AfloatX sharedInstance];
-    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", @"com.vmware.vmware-vmx", nil];
+    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", @"com.vmware.vmware-vmx", @"com.apple.loginwindow", nil];
     if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
         return;
     
@@ -283,6 +176,11 @@ BOOL menuInjected;
     AfloatXSubmenu = [NSMenu new];
     AfloatXItem.submenu = AfloatXSubmenu;
     
+    windowOutlineItem = [NSMenuItem new];
+    windowOutlineItem.title = @"Outline Window";
+    windowOutlineSubmenu = [NSMenu new];
+    windowOutlineItem.submenu = windowOutlineSubmenu;
+    
     floatItem = [[NSMenuItem alloc] initWithTitle:@"Float Window" action:@selector(toggleFloatMainWindow) keyEquivalent:@""];
     [floatItem setTarget:plugin];
     
@@ -300,7 +198,7 @@ BOOL menuInjected;
     
     clickPassthroughItem = [[NSMenuItem alloc] initWithTitle:@"Click-Through Window" action:@selector(toggleEventPassthrough) keyEquivalent:@""];
     [clickPassthroughItem setTarget:plugin];
-    
+
     transparencyItem = [[NSMenuItem alloc] initWithTitle:@"Transparency..." action:@selector(showTransparencySheet) keyEquivalent:@""];
     [transparencyItem setTarget:plugin];
 
@@ -310,6 +208,7 @@ BOOL menuInjected;
                                                     stickyItem,
                                                     transientItem,
                                                     clickPassthroughItem,
+                                                    windowOutlineItem,
                                                     transparencyItem,
                                                     nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
@@ -345,7 +244,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
 @implementation AXApplication
 - (CFArrayRef)_flattenMenu:(NSMenu *)arg1 flatList:(NSArray *)arg2 {
     // Make any necessary changes to our menu before it is 'flattened'
-    NSWindow *window = [[AfloatX sharedInstance] windowToModify];
+    NSWindow *window = [AXWindowUtils windowToModify];
     
     if([[AfloatX sharedInstance] isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
@@ -359,7 +258,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [stickyItem setState:NSControlStateValueOff];
     }
     
-    CGWindowLevel windowLevel = [[AfloatX sharedInstance] getCGWindowLevelForWindow:window];
+    CGWindowLevel windowLevel = [AXWindowUtils getCGWindowLevelForWindow:window];
     if(windowLevel != kCGNormalWindowLevel) {
         if(windowLevel == kCGBackstopMenuLevel) {
             [dropItem setState:NSControlStateValueOn];
@@ -373,10 +272,20 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [floatItem setState:NSControlStateValueOff];
     }
     
-    if([[AfloatX sharedInstance] window:window hasLowTag:CGSTagTransparent]) {
+    if([AXWindowUtils window:window hasLowTag:CGSTagTransparent]) {
         [clickPassthroughItem setState:NSControlStateValueOn];
     } else {
         [clickPassthroughItem setState:NSControlStateValueOff];
+    }
+    
+    /* Create a new WindowOutliningController per window */
+    if (!objc_getAssociatedObject(window, "outlineController")) {
+        WindowOutliningController *outlineController = [WindowOutliningController new];
+        windowOutlineSubmenu.itemArray = [outlineController colorItems];
+        objc_setAssociatedObject(window, "outlineController", outlineController, OBJC_ASSOCIATION_RETAIN);
+    } else {
+        WindowOutliningController *outlineController = objc_getAssociatedObject(window, "outlineController");
+        windowOutlineSubmenu.itemArray = [outlineController colorItems];
     }
     
     if ([objc_getAssociatedObject(window, "isColorInverted") boolValue]) {
