@@ -245,7 +245,12 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
 - (CFArrayRef)_flattenMenu:(NSMenu *)arg1 flatList:(NSArray *)arg2 {
     // Make any necessary changes to our menu before it is 'flattened'
     NSWindow *window = [AXWindowUtils windowToModify];
+    if(!window) {
+        AfloatXItem.enabled = NO;
+        return ZKOrig(CFArrayRef, arg1, arg2);
+    }
     
+    AfloatXItem.enabled = YES;
     if([[AfloatX sharedInstance] isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
     } else {
