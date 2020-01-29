@@ -10,14 +10,14 @@
 #import "AXWindowUtils.h"
 
 @interface WindowOutliningController ()
-@property CGColorRef CGColorWhite;
-@property CGColorRef CGColorBlack;
-@property CGColorRef CGColorRed;
-@property CGColorRef CGColorGreen;
-@property CGColorRef CGColorBlue;
-@property CGColorRef CGColorYellow;
-@property CGColorRef CGColorOrange;
-@property CGColorRef CGColorPurple;
+@property (strong) NSColor *NSColorWhite;
+@property (strong) NSColor *NSColorBlack;
+@property (strong) NSColor *NSColorRed;
+@property (strong) NSColor *NSColorGreen;
+@property (strong) NSColor *NSColorBlue;
+@property (strong) NSColor *NSColorYellow;
+@property (strong) NSColor *NSColorOrange;
+@property (strong) NSColor *NSColorPurple;
 @property (assign) NSMenuItem *lastColorItem;
 @end
 
@@ -33,14 +33,14 @@
     return themeFrame.layer;
 }
 
-- (void)toggleColor:(CGColorRef)color forItem:(NSMenuItem *)item {
+- (void)toggleColor:(NSColor *)color forItem:(NSMenuItem *)item {
     CALayer *layer = [self themeFrameLayer];
     if(item.state == NSControlStateValueOn) {
         layer.borderWidth = 0.0f;
         item.state = NSControlStateValueOff;
     } else {
         layer.borderWidth = 1.35;
-        layer.borderColor = color;
+        layer.borderColor = color.CGColor;
         item.state = NSControlStateValueOn;
     }
     
@@ -51,49 +51,49 @@
 }
 
 - (void)toggleWhiteColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorWhite forItem:sender];
+    [self toggleColor:self.NSColorWhite forItem:sender];
 }
 
 - (void)toggleBlackColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorBlack forItem:sender];
+    [self toggleColor:self.NSColorBlack forItem:sender];
 }
 
 - (void)toggleRedColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorRed forItem:sender];
+    [self toggleColor:self.NSColorRed forItem:sender];
 }
 
 - (void)toggleGreenColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorGreen forItem:sender];
+    [self toggleColor:self.NSColorGreen forItem:sender];
 }
 
 - (void)toggleBlueColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorBlue forItem:sender];
+    [self toggleColor:self.NSColorBlue forItem:sender];
 }
 
 - (void)toggleYellowColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorYellow forItem:sender];
+    [self toggleColor:self.NSColorYellow forItem:sender];
 }
 
 - (void)toggleOrangeColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorOrange forItem:sender];
+    [self toggleColor:self.NSColorOrange forItem:sender];
 }
 
 - (void)togglePurpleColor:(NSMenuItem *)sender {
-    [self toggleColor:self.CGColorPurple forItem:sender];
+    [self toggleColor:self.NSColorPurple forItem:sender];
 }
 
 - (instancetype)init {
     self = [super init];
     if(self) {
-        self.CGColorWhite = CGColorGetConstantColor(kCGColorWhite);
-        self.CGColorBlack = CGColorGetConstantColor(kCGColorBlack);
-        self.CGColorRed = [[NSColor systemRedColor] CGColor];
-        self.CGColorGreen = [[NSColor systemGreenColor] CGColor];
-        self.CGColorBlue = [[NSColor systemBlueColor] CGColor];
-        self.CGColorYellow = [[NSColor systemYellowColor] CGColor];
-        self.CGColorOrange = [[NSColor systemOrangeColor] CGColor];
-        self.CGColorPurple = [[NSColor systemPurpleColor] CGColor];
-        
+        self.NSColorWhite = [NSColor whiteColor];
+        self.NSColorBlack = [NSColor blackColor];
+        self.NSColorRed = [NSColor systemRedColor];
+        self.NSColorGreen = [NSColor systemGreenColor];
+        self.NSColorBlue = [NSColor systemBlueColor];
+        self.NSColorYellow = [NSColor systemYellowColor];
+        self.NSColorOrange = [NSColor systemOrangeColor];
+        self.NSColorPurple = [NSColor systemPurpleColor];
+
         self.whiteItem = [[NSMenuItem alloc] initWithTitle:@"White" action:@selector(toggleWhiteColor:) keyEquivalent:@""];
         [self.whiteItem setTarget:self];
         
