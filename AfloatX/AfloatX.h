@@ -11,6 +11,3 @@
 @interface AfloatX : NSObject
 + (instancetype)sharedInstance;
 @end
-
-@interface AXAppDelegate : NSObject <NSApplicationDelegate>
-@end

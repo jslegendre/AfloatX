@@ -15,6 +15,8 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
+static dispatch_once_t injectMenuOnceToken;
+
 WindowTransparencyController *transparencyController;
 NSMenu *AfloatXMenu;
 NSMenuItem *AfloatXItem;
@@ -30,7 +32,6 @@ NSMenuItem *windowOutlineItem;
 NSMenu *windowOutlineSubmenu;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
-BOOL menuInjected;
 
 @interface AfloatX()
 
@@ -165,9 +166,7 @@ BOOL menuInjected;
 
     colorInvertFilter = [CIFilter filterWithName:@"CIColorInvert"];
     [colorInvertFilter setDefaults];
-    
-    menuInjected = NO;
-    
+
     transparencyController = [WindowTransparencyController sharedInstance];
     
     AfloatXMenu = [NSMenu new];
@@ -212,57 +211,71 @@ BOOL menuInjected;
                                                     transparencyItem,
                                                     nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
-    
-    // If the application has a custom dock menu, we will add ourselves to that
-    if([[NSApp delegate] respondsToSelector:@selector(applicationDockMenu:)]) {
-        AfloatXMenu = [[NSApp delegate] applicationDockMenu:NSApp];
-        [AfloatXMenu addItem:[NSMenuItem separatorItem]];
-        menuInjected = YES;
+
+    // Are we in an Electron app?
+    if(objc_lookUpClass("AtomApplicationDelegate")) {
+        dispatch_once(&injectMenuOnceToken, ^{ /* Use up token */ });
+        [AfloatXMenu addItem:AfloatXItem];
     }
-    
-    [AfloatXMenu addItem:AfloatXItem];
-     _ZKSwizzle([AXAppDelegate class], [[NSApp delegate] class]);
 }
 
 @end
 
+/*
+ AtomApplicationDelegate is the application delegate class
+ for all Electron apps. In order for AfloatX to work we must
+ explicitly swizzle this class because the application delegate
+ class gets subclassed/swizzled to this one after injection.
+*/
+ZKSwizzleInterface(AXAppDelegate, AtomApplicationDelegate, NSObject)
 @implementation AXAppDelegate
 - (NSMenu *)applicationDockMenu:(NSApplication *)sender {
-    if (menuInjected) {
+    NSMenu *originalMenu = ZKOrig(NSMenu*, sender);
+    if(originalMenu) {
         [AfloatXMenu removeItem:AfloatXItem];
-        AfloatXMenu = ZKOrig(NSMenu*, sender);
+        AfloatXMenu = originalMenu;
         // Only add a separator if last item isn't already a separator
         if (!AfloatXMenu.itemArray.lastObject.isSeparatorItem)
             [AfloatXMenu addItem:[NSMenuItem separatorItem]];
         [AfloatXMenu addItem:AfloatXItem];
     }
+
     return AfloatXMenu;
 }
 @end
 
 ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
 @implementation AXApplication
-- (CFArrayRef)_flattenMenu:(NSMenu *)arg1 flatList:(NSArray *)arg2 {
+- (CFArrayRef)_flattenMenu:(NSMenu *)dockMenu flatList:(NSArray *)flatList {
+
+    // Add AfloatX to the dock menu
+    dispatch_once(&injectMenuOnceToken, ^{
+        if (!dockMenu.itemArray.lastObject.isSeparatorItem)
+            [dockMenu addItem:[NSMenuItem separatorItem]];
+
+        [dockMenu addItem:AfloatXItem];
+    });
+
     // Make any necessary changes to our menu before it is 'flattened'
     NSWindow *window = [AXWindowUtils windowToModify];
     if(!window) {
         AfloatXItem.enabled = NO;
-        return ZKOrig(CFArrayRef, arg1, arg2);
+        return ZKOrig(CFArrayRef, dockMenu, flatList);
     }
-    
+
     AfloatXItem.enabled = YES;
     if([[AfloatX sharedInstance] isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
     } else {
         [transientItem setState:NSControlStateValueOff];
     }
-    
+
     if([[AfloatX sharedInstance] isWindowSticky:window]) {
         [stickyItem setState:NSControlStateValueOn];
     } else {
         [stickyItem setState:NSControlStateValueOff];
     }
-    
+
     CGWindowLevel windowLevel = [AXWindowUtils getCGWindowLevelForWindow:window];
     if(windowLevel != kCGNormalWindowLevel) {
         if(windowLevel == kCGBackstopMenuLevel) {
@@ -276,13 +289,13 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [dropItem setState:NSControlStateValueOff];
         [floatItem setState:NSControlStateValueOff];
     }
-    
+
     if([AXWindowUtils window:window hasLowTag:CGSTagTransparent]) {
         [clickPassthroughItem setState:NSControlStateValueOn];
     } else {
         [clickPassthroughItem setState:NSControlStateValueOff];
     }
-    
+
     /* Create a new WindowOutliningController per window */
     if (!objc_getAssociatedObject(window, "outlineController")) {
         WindowOutliningController *outlineController = [WindowOutliningController new];
@@ -292,13 +305,13 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         WindowOutliningController *outlineController = objc_getAssociatedObject(window, "outlineController");
         windowOutlineSubmenu.itemArray = [outlineController colorItems];
     }
-    
+
     if ([objc_getAssociatedObject(window, "isColorInverted") boolValue]) {
         [invertColorItem setState:NSControlStateValueOn];
     } else {
         [invertColorItem setState:NSControlStateValueOff];
     }
-    
-    return ZKOrig(CFArrayRef, arg1, arg2);
+
+    return ZKOrig(CFArrayRef, dockMenu, flatList);
 }
 @end
