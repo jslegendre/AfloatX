@@ -211,59 +211,22 @@ CIFilter* colorInvertFilter;
                                                     transparencyItem,
                                                     nil];
     [AfloatXSubmenu setItemArray:afloatXItems];
-
-    // Are we in an Electron app?
-    if(objc_lookUpClass("AtomApplicationDelegate")) {
-        dispatch_once(&injectMenuOnceToken, ^{ /* Use up token */ });
-        [AfloatXMenu addItem:AfloatXItem];
-    }
+    
+    [AfloatXMenu addItem:[NSMenuItem separatorItem]];
+    [AfloatXMenu addItem:AfloatXItem];
 }
 
-@end
-
-/*
- AtomApplicationDelegate is the application delegate class
- for all Electron apps. In order for AfloatX to work we must
- explicitly swizzle this class because the application delegate
- class gets subclassed/swizzled to this one after injection.
-*/
-ZKSwizzleInterface(AXAppDelegate, AtomApplicationDelegate, NSObject)
-@implementation AXAppDelegate
-- (NSMenu *)applicationDockMenu:(NSApplication *)sender {
-    NSMenu *originalMenu = ZKOrig(NSMenu*, sender);
-    if(originalMenu) {
-        [AfloatXMenu removeItem:AfloatXItem];
-        AfloatXMenu = originalMenu;
-        // Only add a separator if last item isn't already a separator
-        if (!AfloatXMenu.itemArray.lastObject.isSeparatorItem)
-            [AfloatXMenu addItem:[NSMenuItem separatorItem]];
-        [AfloatXMenu addItem:AfloatXItem];
-    }
-
-    return AfloatXMenu;
-}
 @end
 
 ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
 @implementation AXApplication
-- (CFArrayRef)_flattenMenu:(NSMenu *)dockMenu flatList:(NSArray *)flatList {
-
-    // Add AfloatX to the dock menu
-    dispatch_once(&injectMenuOnceToken, ^{
-        if (!dockMenu.itemArray.lastObject.isSeparatorItem)
-            [dockMenu addItem:[NSMenuItem separatorItem]];
-
-        [dockMenu addItem:AfloatXItem];
-    });
-
-    // Make any necessary changes to our menu before it is 'flattened'
+- (CFArrayRef)_createDockMenu:(BOOL)enabled {
     NSWindow *window = [AXWindowUtils windowToModify];
     if(!window) {
-        AfloatXItem.enabled = NO;
-        return ZKOrig(CFArrayRef, dockMenu, flatList);
+        return ZKOrig(CFArrayRef, enabled);
     }
 
-    AfloatXItem.enabled = YES;
+    // Make any necessary changes to our menu before it is 'flattened'
     if([[AfloatX sharedInstance] isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
     } else {
@@ -311,7 +274,12 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     } else {
         [invertColorItem setState:NSControlStateValueOff];
     }
-
-    return ZKOrig(CFArrayRef, dockMenu, flatList);
+    
+    CFArrayRef flatDockMenu = ZKOrig(CFArrayRef, enabled);
+    CFArrayRef flatAfloatXMenu = (__bridge CFArrayRef)(objc_msgSend(self, sel_getUid("_flattenMenu:flatList:"), AfloatXMenu, nil));
+    
+    NSMutableArray *combinedFlatMenus = (__bridge NSMutableArray *)flatDockMenu;
+    [combinedFlatMenus addObjectsFromArray:(__bridge NSArray *)flatAfloatXMenu];
+    return (__bridge CFArrayRef)combinedFlatMenus;
 }
 @end
