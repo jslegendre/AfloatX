@@ -15,8 +15,6 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-static dispatch_once_t injectMenuOnceToken;
-
 WindowTransparencyController *transparencyController;
 NSMenu *AfloatXMenu;
 NSMenuItem *AfloatXItem;
