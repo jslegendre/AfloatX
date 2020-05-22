@@ -21,5 +21,10 @@ Open an issue here describing a feature you think would fit well.
 ## Install
 I use and recommend [MacForge](https://github.com/w0lfschild/MacForge) for managing plugins.
 
+## Contribution
+If you would like to contribute to AfloatX feel free to send a pull request or open an issue!
+If you're not a great programmer or don't have any issues, consider getting me a coffee :) 
+https://paypal.me/jslegendre
+
 ## Screenshots
 <img src="https://i.imgur.com/nQsDuBE.png" width="250"/>  <img src="https://i.imgur.com/nEAwZYa.png" width="322"/>
