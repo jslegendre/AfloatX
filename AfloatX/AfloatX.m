@@ -15,7 +15,6 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-WindowTransparencyController *transparencyController;
 NSMenu *AfloatXMenu;
 NSMenuItem *AfloatXItem;
 NSMenu *AfloatXSubmenu;
@@ -147,25 +146,30 @@ CIFilter* colorInvertFilter;
 }
 
 - (void)showTransparencySheet {
-    [transparencyController runSheetForWindow:[AXWindowUtils windowToModify]];
+    [[WindowTransparencyController sharedInstance] runSheetForWindow:[AXWindowUtils windowToModify]];
     if([self isMainWindowFloating]) {
         [AXWindowUtils setMainWindowLevel:kCGFloatingWindowLevel];
     }
 }
 
 + (void)load {
-    AfloatX *plugin = [AfloatX sharedInstance];
-    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", @"com.vmware.vmware-vmx", @"com.apple.loginwindow", nil];
+    if([NSBundle mainBundle] == NULL)
+        return;
+    
+    if(NSBundle.mainBundle.bundleIdentifier == NULL)
+        return;
+    
+    NSArray *blackList = [[NSArray alloc] initWithObjects:@"com.apple.dock", @"com.vmware.vmware-vmx", @"com.apple.loginwindow", @"com.apple.Spotlight", @"com.apple.SystemUIServer", @"com.apple.screencaptureui", nil];
     if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
         return;
     
     NSUInteger osx_ver = [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion;
     NSLog(@"%@ loaded into %@ on macOS 10.%ld", [self class], [[NSBundle mainBundle] bundleIdentifier], (long)osx_ver);
-
+    
+    AfloatX *plugin = [AfloatX sharedInstance];
+    
     colorInvertFilter = [CIFilter filterWithName:@"CIColorInvert"];
     [colorInvertFilter setDefaults];
-
-    transparencyController = [WindowTransparencyController sharedInstance];
     
     AfloatXMenu = [NSMenu new];
     AfloatXItem = [NSMenuItem new];
@@ -195,19 +199,20 @@ CIFilter* colorInvertFilter;
     
     clickPassthroughItem = [[NSMenuItem alloc] initWithTitle:@"Click-Through Window" action:@selector(toggleEventPassthrough) keyEquivalent:@""];
     [clickPassthroughItem setTarget:plugin];
-
+    
     transparencyItem = [[NSMenuItem alloc] initWithTitle:@"Transparency..." action:@selector(showTransparencySheet) keyEquivalent:@""];
     [transparencyItem setTarget:plugin];
-
+    
     afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
-                                                    dropItem,
-                                                    invertColorItem,
-                                                    stickyItem,
-                                                    transientItem,
-                                                    clickPassthroughItem,
-                                                    windowOutlineItem,
-                                                    transparencyItem,
-                                                    nil];
+                    dropItem,
+                    invertColorItem,
+                    stickyItem,
+                    transientItem,
+                    clickPassthroughItem,
+                    windowOutlineItem,
+                    transparencyItem,
+                    nil];
+    
     [AfloatXSubmenu setItemArray:afloatXItems];
     
     [AfloatXMenu addItem:[NSMenuItem separatorItem]];
@@ -223,7 +228,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     if(!window) {
         return ZKOrig(CFArrayRef, enabled);
     }
-
+    
     // Make any necessary changes to our menu before it is 'flattened'
     if([[AfloatX sharedInstance] isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
