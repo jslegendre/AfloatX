@@ -87,11 +87,8 @@
     + (void)load { \
         _$ZKRegisterInterface(self, #GROUP);\
         if (IMMEDIATELY) { \
-            [self _ZK_unconditionallySwizzle]; \
+            ZKSwizzle(CLASS_NAME, TARGET_CLASS); \
         } \
-    } \
-    + (void)_ZK_unconditionallySwizzle { \
-        ZKSwizzle(CLASS_NAME, TARGET_CLASS); \
     } \
 @end
 

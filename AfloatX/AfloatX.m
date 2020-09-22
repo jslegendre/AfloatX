@@ -6,7 +6,7 @@
 //Copyright © 2019 Jeremy Legendre. All rights reserved.
 //
 
-@import AppKit;
+@import Foundation;
 #import "AfloatX.h"
 #import "AXWindowUtils.h"
 #import "WindowTransparencyController.h"
@@ -163,8 +163,8 @@ CIFilter* colorInvertFilter;
     if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
         return;
     
-    NSUInteger osx_ver = [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion;
-    NSLog(@"%@ loaded into %@ on macOS 10.%ld", [self class], [[NSBundle mainBundle] bundleIdentifier], (long)osx_ver);
+//    NSUInteger osx_ver = [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion;
+//    NSLog(@"%@ loaded into %@ on macOS 10.%ld", [self class], [[NSBundle mainBundle] bundleIdentifier], (long)osx_ver);
     
     AfloatX *plugin = [AfloatX sharedInstance];
     
@@ -213,8 +213,9 @@ CIFilter* colorInvertFilter;
                     transparencyItem,
                     nil];
     
-    [AfloatXSubmenu setItemArray:afloatXItems];
-    
+    for(NSMenuItem *item in afloatXItems)
+        [AfloatXSubmenu addItem:item];
+        
     [AfloatXMenu addItem:[NSMenuItem separatorItem]];
     [AfloatXMenu addItem:AfloatXItem];
 }
@@ -263,13 +264,16 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     }
 
     /* Create a new WindowOutliningController per window */
+    [windowOutlineSubmenu removeAllItems];
     if (!objc_getAssociatedObject(window, "outlineController")) {
         WindowOutliningController *outlineController = [WindowOutliningController new];
-        windowOutlineSubmenu.itemArray = [outlineController colorItems];
+        for(NSMenuItem *item in [outlineController colorItems])
+            [windowOutlineSubmenu addItem:item];
         objc_setAssociatedObject(window, "outlineController", outlineController, OBJC_ASSOCIATION_RETAIN);
     } else {
         WindowOutliningController *outlineController = objc_getAssociatedObject(window, "outlineController");
-        windowOutlineSubmenu.itemArray = [outlineController colorItems];
+        for(NSMenuItem *item in [outlineController colorItems])
+            [windowOutlineSubmenu addItem:item];
     }
 
     if ([objc_getAssociatedObject(window, "isColorInverted") boolValue]) {

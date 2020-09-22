@@ -158,11 +158,11 @@ BOOL _ZKSwizzle(Class src, Class dest) {
         classTable = [[NSMutableDictionary alloc] init];
     }
     
-    if ([classTable objectForKey:NSStringFromClass(src)]) {
-        [NSException raise:@"Invalid Argument"
-                    format:@"This source class (%@) was already swizzled with another, (%@)", NSStringFromClass(src), classTable[NSStringFromClass(src)]];
-        return NO;
-    }
+//    if ([classTable objectForKey:NSStringFromClass(src)]) {
+//        [NSException raise:@"Invalid Argument"
+//                    format:@"This source class (%@) was already swizzled with another, (%@)", NSStringFromClass(src), classTable[NSStringFromClass(src)]];
+//        return NO;
+//    }
     
     BOOL success = enumerateMethods(dest, src);
     // The above method only gets instance methods. Do the same method for the metaclass of the class
