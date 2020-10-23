@@ -8,9 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		091DC75923D5555900717833 /* WindowOutliningController.m in Sources */ = {isa = PBXBuildFile; fileRef = 091DC75823D5555900717833 /* WindowOutliningController.m */; };
-		093B76EA23D5743E000F52F7 /* AXWindowUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 093B76E923D5743E000F52F7 /* AXWindowUtils.m */; };
 		09613B03239E014100E8C657 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 09613B02239E014100E8C657 /* Icon.icns */; };
 		09A55408239AE583006CB957 /* WindowTransparencyController.m in Sources */ = {isa = PBXBuildFile; fileRef = 09A55407239AE583006CB957 /* WindowTransparencyController.m */; };
+		09A77E8B2543747B00A5A789 /* NSWindow+AfloatX.m in Sources */ = {isa = PBXBuildFile; fileRef = 09A77E8A2543747B00A5A789 /* NSWindow+AfloatX.m */; };
 		09AA55FC2350FFBE00356916 /* AfloatX.m in Sources */ = {isa = PBXBuildFile; fileRef = 09AA55FB2350FFBE00356916 /* AfloatX.m */; };
 		09AA56002350FFBE00356916 /* ZKSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 09AA55FF2350FFBE00356916 /* ZKSwizzle.m */; };
 /* End PBXBuildFile section */
@@ -18,12 +18,12 @@
 /* Begin PBXFileReference section */
 		091DC75723D5555900717833 /* WindowOutliningController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WindowOutliningController.h; sourceTree = "<group>"; };
 		091DC75823D5555900717833 /* WindowOutliningController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WindowOutliningController.m; sourceTree = "<group>"; };
-		093B76E823D5743E000F52F7 /* AXWindowUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXWindowUtils.h; sourceTree = "<group>"; };
-		093B76E923D5743E000F52F7 /* AXWindowUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AXWindowUtils.m; sourceTree = "<group>"; };
 		09613B02239E014100E8C657 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = AfloatX/Resources/Icon.icns; sourceTree = SOURCE_ROOT; };
 		09613B04239E017900E8C657 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Info.plist; path = AfloatX/Info.plist; sourceTree = SOURCE_ROOT; };
 		09A55406239AE583006CB957 /* WindowTransparencyController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WindowTransparencyController.h; sourceTree = "<group>"; };
 		09A55407239AE583006CB957 /* WindowTransparencyController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WindowTransparencyController.m; sourceTree = "<group>"; };
+		09A77E892543747B00A5A789 /* NSWindow+AfloatX.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSWindow+AfloatX.h"; sourceTree = "<group>"; };
+		09A77E8A2543747B00A5A789 /* NSWindow+AfloatX.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSWindow+AfloatX.m"; sourceTree = "<group>"; };
 		09AA55EF2350FFBE00356916 /* AfloatX.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AfloatX.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		09AA55F22350FFBE00356916 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		09AA55F42350FFBE00356916 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -84,8 +84,8 @@
 			children = (
 				09AA55FA2350FFBE00356916 /* AfloatX.h */,
 				09AA55FB2350FFBE00356916 /* AfloatX.m */,
-				093B76E823D5743E000F52F7 /* AXWindowUtils.h */,
-				093B76E923D5743E000F52F7 /* AXWindowUtils.m */,
+				09A77E892543747B00A5A789 /* NSWindow+AfloatX.h */,
+				09A77E8A2543747B00A5A789 /* NSWindow+AfloatX.m */,
 				09A55406239AE583006CB957 /* WindowTransparencyController.h */,
 				09A55407239AE583006CB957 /* WindowTransparencyController.m */,
 				091DC75723D5555900717833 /* WindowOutliningController.h */,
@@ -181,8 +181,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09A77E8B2543747B00A5A789 /* NSWindow+AfloatX.m in Sources */,
 				09A55408239AE583006CB957 /* WindowTransparencyController.m in Sources */,
-				093B76EA23D5743E000F52F7 /* AXWindowUtils.m in Sources */,
 				09AA55FC2350FFBE00356916 /* AfloatX.m in Sources */,
 				09AA56002350FFBE00356916 /* ZKSwizzle.m in Sources */,
 				091DC75923D5555900717833 /* WindowOutliningController.m in Sources */,

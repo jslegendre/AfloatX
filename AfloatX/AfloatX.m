@@ -8,7 +8,7 @@
 
 @import Foundation;
 #import "AfloatX.h"
-#import "AXWindowUtils.h"
+#import "NSWindow+AfloatX.h"
 #import "WindowTransparencyController.h"
 #import "WindowOutliningController.h"
 #import "ZKSwizzle.h"
@@ -80,75 +80,75 @@ CIFilter* colorInvertFilter;
 }
 
 - (BOOL)isMainWindowFloating {
-    return [AXWindowUtils window:[AXWindowUtils windowToModify] isLevel:kCGFloatingWindowLevel];
+    return [[NSWindow topWindow] isAtCGWindowLevel:kCGFloatingWindowLevel];
 }
 
 - (BOOL)isMainWindowDropped {
-    return [AXWindowUtils window:[AXWindowUtils windowToModify] isLevel:kCGBackstopMenuLevel];
+    return [[NSWindow topWindow] isAtCGWindowLevel:kCGBackstopMenuLevel];
 }
 
 - (void)toggleTransientMainWindow {
-    if(![self isWindowTransient:[AXWindowUtils windowToModify]]) {
-        [[AXWindowUtils windowToModify] setCollectionBehavior:
-            ([[AXWindowUtils windowToModify] collectionBehavior] | NSWindowCollectionBehaviorMoveToActiveSpace)];
+    if(![self isWindowTransient:[NSWindow topWindow]]) {
+        [[NSWindow topWindow] setCollectionBehavior:
+            ([[NSWindow topWindow] collectionBehavior] | NSWindowCollectionBehaviorMoveToActiveSpace)];
     } else {
-        [[AXWindowUtils windowToModify] setCollectionBehavior:
-            ([[AXWindowUtils windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorMoveToActiveSpace)];
+        [[NSWindow topWindow] setCollectionBehavior:
+            ([[NSWindow topWindow] collectionBehavior] & ~NSWindowCollectionBehaviorMoveToActiveSpace)];
     }
 }
 
 - (void)toggleStickyMainWindow {
-    if(![self isWindowSticky:[AXWindowUtils windowToModify]]) {
-        [[AXWindowUtils windowToModify] setCollectionBehavior:
-            ([[AXWindowUtils windowToModify] collectionBehavior] | NSWindowCollectionBehaviorCanJoinAllSpaces)];
+    if(![self isWindowSticky:[NSWindow topWindow]]) {
+        [[NSWindow topWindow] setCollectionBehavior:
+            ([[NSWindow topWindow] collectionBehavior] | NSWindowCollectionBehaviorCanJoinAllSpaces)];
     } else {
-        [[AXWindowUtils windowToModify] setCollectionBehavior:
-            ([[AXWindowUtils windowToModify] collectionBehavior] & ~NSWindowCollectionBehaviorCanJoinAllSpaces)];
+        [[NSWindow topWindow] setCollectionBehavior:
+            ([[NSWindow topWindow] collectionBehavior] & ~NSWindowCollectionBehaviorCanJoinAllSpaces)];
     }
 }
 
 - (void)toggleColorInvert {
-    NSWindow *window = [AXWindowUtils windowToModify];
+    NSWindow *window = [NSWindow topWindow];
     [[window.contentView superview] setWantsLayer:YES];
     
     if (![objc_getAssociatedObject(window, "isColorInverted") boolValue]) {
-        [AXWindowUtils addFilter:colorInvertFilter toWindow:window];
+        [window addFilter:colorInvertFilter];
         objc_setAssociatedObject(window, "isColorInverted", [NSNumber numberWithBool:true], OBJC_ASSOCIATION_RETAIN);
     } else {
-        [AXWindowUtils removeFilter:colorInvertFilter fromWindow:window];
+        [window removeFilter:colorInvertFilter];
         objc_setAssociatedObject(window, "isColorInverted", [NSNumber numberWithBool:false], OBJC_ASSOCIATION_RETAIN);
     }
 }
 
 - (void)toggleEventPassthrough {
-    NSWindow *window = [AXWindowUtils windowToModify];
-    if([AXWindowUtils window:window hasLowTag:CGSTagTransparent]) {
-        [AXWindowUtils removeLowTag:CGSTagTransparent fromWindow:window];
+    NSWindow *window = [NSWindow topWindow];
+    if([window hasLowTag:CGSTagTransparent]) {
+        [window removeLowTag:CGSTagTransparent];
     } else {
-        [AXWindowUtils addLowTag:CGSTagTransparent toWindow:window];
+        [window addLowTag:CGSTagTransparent];
     }
 }
 
 - (void)toggleFloatMainWindow {
     if([self isMainWindowFloating]) {
-        [AXWindowUtils setMainWindowLevel:kCGNormalWindowLevel];
+        [NSWindow setTopWindowCGWindowLevel:kCGNormalWindowLevel];
     } else {
-        [AXWindowUtils setMainWindowLevel:kCGFloatingWindowLevel];
+        [NSWindow setTopWindowCGWindowLevel:kCGFloatingWindowLevel];
     }
 }
 
 - (void)toggleDropMainWindow {
     if([self isMainWindowDropped]) {
-        [AXWindowUtils setMainWindowLevel:kCGNormalWindowLevel];
+        [NSWindow setTopWindowCGWindowLevel:kCGNormalWindowLevel];
     } else {
-        [AXWindowUtils setMainWindowLevel:kCGBackstopMenuLevel];
+        [NSWindow setTopWindowCGWindowLevel:kCGBackstopMenuLevel];
     }
 }
 
 - (void)showTransparencySheet {
-    [[WindowTransparencyController sharedInstance] runSheetForWindow:[AXWindowUtils windowToModify]];
+    [[WindowTransparencyController sharedInstance] runSheetForWindow:[NSWindow topWindow]];
     if([self isMainWindowFloating]) {
-        [AXWindowUtils setMainWindowLevel:kCGFloatingWindowLevel];
+        [NSWindow setTopWindowCGWindowLevel:kCGFloatingWindowLevel];
     }
 }
 
@@ -225,7 +225,7 @@ CIFilter* colorInvertFilter;
 ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
 @implementation AXApplication
 - (CFArrayRef)_createDockMenu:(BOOL)enabled {
-    NSWindow *window = [AXWindowUtils windowToModify];
+    NSWindow *window = [NSWindow topWindow];
     if(!window) {
         return ZKOrig(CFArrayRef, enabled);
     }
@@ -243,7 +243,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [stickyItem setState:NSControlStateValueOff];
     }
 
-    CGWindowLevel windowLevel = [AXWindowUtils getCGWindowLevelForWindow:window];
+    CGWindowLevel windowLevel = [window getCGWindowLevel];
     if(windowLevel != kCGNormalWindowLevel) {
         if(windowLevel == kCGBackstopMenuLevel) {
             [dropItem setState:NSControlStateValueOn];
@@ -257,7 +257,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [floatItem setState:NSControlStateValueOff];
     }
 
-    if([AXWindowUtils window:window hasLowTag:CGSTagTransparent]) {
+    if([window hasLowTag:CGSTagTransparent]) {
         [clickPassthroughItem setState:NSControlStateValueOn];
     } else {
         [clickPassthroughItem setState:NSControlStateValueOff];

@@ -7,7 +7,7 @@
 //
 
 #import "WindowOutliningController.h"
-#import "AXWindowUtils.h"
+#import "NSWindow+AfloatX.h"
 
 @interface WindowOutliningController ()
 @property (strong) NSColor *NSColorWhite;
@@ -24,7 +24,7 @@
 @implementation WindowOutliningController
 
 - (NSView *)themeFrameToModify {
-    return [[[AXWindowUtils windowToModify] contentView] superview];
+    return [[[NSWindow topWindow] contentView] superview];
 }
 
 - (CALayer *)themeFrameLayer {
