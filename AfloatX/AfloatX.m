@@ -282,11 +282,17 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
         [invertColorItem setState:NSControlStateValueOff];
     }
     
+    CFMutableArrayRef finalMenu = CFArrayCreateMutable(0, 0, &kCFTypeArrayCallBacks);
+    
     CFArrayRef flatDockMenu = ZKOrig(CFArrayRef, enabled);
+    CFArrayAppendArray(finalMenu, flatDockMenu, CFRangeMake(0, CFArrayGetCount(flatDockMenu)));
+    CFRelease(flatDockMenu);
+    
     CFArrayRef flatAfloatXMenu = (__bridge CFArrayRef)(objc_msgSend(self, sel_getUid("_flattenMenu:flatList:"), AfloatXMenu, nil));
     
-    NSMutableArray *combinedFlatMenus = (__bridge NSMutableArray *)flatDockMenu;
-    [combinedFlatMenus addObjectsFromArray:(__bridge NSArray *)flatAfloatXMenu];
-    return (__bridge CFArrayRef)combinedFlatMenus;
+    CFArrayAppendArray(finalMenu, flatAfloatXMenu, CFRangeMake(0, CFArrayGetCount(flatAfloatXMenu)));
+    CFRelease(flatAfloatXMenu);
+
+    return finalMenu;
 }
 @end
