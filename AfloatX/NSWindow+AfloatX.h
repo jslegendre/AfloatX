@@ -6,7 +6,7 @@
 //  Copyright © 2020 j. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 #import <CoreImage/CIFilter.h>
 
 NS_ASSUME_NONNULL_BEGIN

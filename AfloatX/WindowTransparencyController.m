@@ -39,15 +39,15 @@
 - (instancetype)init {
     self = [super init];
     self.sheetWindow = [NSWindow new];
-    [self.sheetWindow setFrame:CGRectMake(0, 0, 270, 75) display:YES];
+    [self.sheetWindow setFrame:CGRectMake(0, 0, 270, 90) display:YES];
     
     NSTextField *label = [NSTextField labelWithString:@"Transparency:"];
-    [label setFrameOrigin:CGPointMake(15, 30)];
+    [label setFrameOrigin:CGPointMake(15, 35)];
     
     self.transparencySlider = [NSSlider sliderWithTarget:self action:@selector(setWindowTransparency:)];
-    self.transparencySlider.frame = CGRectMake(15, 8, 205, 20);
+    self.transparencySlider.frame = CGRectMake(15, 8, 205, 25);
 
-    NSButton *endSheetButton = [[NSButton alloc] initWithFrame:CGRectMake(230, 8, 20, 20)];
+    NSButton *endSheetButton = [[NSButton alloc] initWithFrame:CGRectMake(230, 9, 20, 25)];
     endSheetButton.bezelStyle = NSBezelStyleRoundRect;
     endSheetButton.image = [NSImage imageNamed:NSImageNameMenuOnStateTemplate];
     endSheetButton.target = self;

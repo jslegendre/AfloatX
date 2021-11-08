@@ -6,14 +6,17 @@
 //Copyright © 2019 Jeremy Legendre. All rights reserved.
 //
 
-@import Foundation;
+@import AppKit;
 #import "AfloatX.h"
 #import "NSWindow+AfloatX.h"
+#import "NSApplication+Private.h"
 #import "WindowTransparencyController.h"
 #import "WindowOutliningController.h"
 #import "ZKSwizzle.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
+
+AfloatX *plugin = NULL;
 
 NSMenu *AfloatXMenu;
 NSMenuItem *AfloatXItem;
@@ -30,23 +33,13 @@ NSMenu *windowOutlineSubmenu;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
 
-@interface AfloatX()
-
-@end
-
 @implementation AfloatX
 
-/**
- * @return the single static instance of the plugin object
- */
-+ (instancetype)sharedInstance
-{
-    static AfloatX *plugin = nil;
-    @synchronized(self) {
-        if (!plugin) {
-            plugin = [[self alloc] init];
-        }
++ (instancetype)sharedInstance {
+    if (!plugin) {
+        plugin = [[self alloc] init];
     }
+    
     return plugin;
 }
 
@@ -163,9 +156,6 @@ CIFilter* colorInvertFilter;
     if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
         return;
     
-//    NSUInteger osx_ver = [[NSProcessInfo processInfo] operatingSystemVersion].minorVersion;
-//    NSLog(@"%@ loaded into %@ on macOS 10.%ld", [self class], [[NSBundle mainBundle] bundleIdentifier], (long)osx_ver);
-    
     AfloatX *plugin = [AfloatX sharedInstance];
     
     colorInvertFilter = [CIFilter filterWithName:@"CIColorInvert"];
@@ -231,13 +221,13 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     }
     
     // Make any necessary changes to our menu before it is 'flattened'
-    if([[AfloatX sharedInstance] isWindowTransient:window]) {
+    if([plugin isWindowTransient:window]) {
         [transientItem setState:NSControlStateValueOn];
     } else {
         [transientItem setState:NSControlStateValueOff];
     }
 
-    if([[AfloatX sharedInstance] isWindowSticky:window]) {
+    if([plugin isWindowSticky:window]) {
         [stickyItem setState:NSControlStateValueOn];
     } else {
         [stickyItem setState:NSControlStateValueOff];
@@ -287,8 +277,7 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     CFArrayRef flatDockMenu = ZKOrig(CFArrayRef, enabled);
     CFArrayAppendArray(finalMenu, flatDockMenu, CFRangeMake(0, CFArrayGetCount(flatDockMenu)));
     CFRelease(flatDockMenu);
-    
-    CFArrayRef flatAfloatXMenu = (__bridge CFArrayRef)(objc_msgSend(self, sel_getUid("_flattenMenu:flatList:"), AfloatXMenu, nil));
+    CFArrayRef flatAfloatXMenu = [(NSApplication*)self _flattenMenu:AfloatXMenu flatList:nil];
     
     CFArrayAppendArray(finalMenu, flatAfloatXMenu, CFRangeMake(0, CFArrayGetCount(flatAfloatXMenu)));
     CFRelease(flatAfloatXMenu);

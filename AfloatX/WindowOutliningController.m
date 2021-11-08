@@ -39,7 +39,7 @@
         layer.borderWidth = 0.0f;
         item.state = NSControlStateValueOff;
     } else {
-        layer.borderWidth = 1.35;
+        layer.borderWidth = 1.5;
         layer.borderColor = color.CGColor;
         item.state = NSControlStateValueOn;
     }
