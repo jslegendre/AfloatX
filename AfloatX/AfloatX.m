@@ -29,7 +29,6 @@ NSMenuItem *stickyItem;
 NSMenuItem *invertColorItem;
 NSMenuItem *clickPassthroughItem;
 NSMenuItem *windowOutlineItem;
-NSMenu *windowOutlineSubmenu;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
 
@@ -146,6 +145,7 @@ CIFilter* colorInvertFilter;
 }
 
 + (void)load {
+    NSLog(@"AfloatX loaded");
     if([NSBundle mainBundle] == NULL)
         return;
     
@@ -169,8 +169,6 @@ CIFilter* colorInvertFilter;
     
     windowOutlineItem = [NSMenuItem new];
     windowOutlineItem.title = @"Outline Window";
-    windowOutlineSubmenu = [NSMenu new];
-    windowOutlineItem.submenu = windowOutlineSubmenu;
     
     floatItem = [[NSMenuItem alloc] initWithTitle:@"Float Window" action:@selector(toggleFloatMainWindow) keyEquivalent:@""];
     [floatItem setTarget:plugin];
@@ -254,16 +252,13 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     }
 
     /* Create a new WindowOutliningController per window */
-    [windowOutlineSubmenu removeAllItems];
     if (!objc_getAssociatedObject(window, "outlineController")) {
         WindowOutliningController *outlineController = [WindowOutliningController new];
-        for(NSMenuItem *item in [outlineController colorItems])
-            [windowOutlineSubmenu addItem:item];
+        windowOutlineItem.submenu = outlineController.menu;
         objc_setAssociatedObject(window, "outlineController", outlineController, OBJC_ASSOCIATION_RETAIN);
     } else {
         WindowOutliningController *outlineController = objc_getAssociatedObject(window, "outlineController");
-        for(NSMenuItem *item in [outlineController colorItems])
-            [windowOutlineSubmenu addItem:item];
+        windowOutlineItem.submenu = outlineController.menu;
     }
 
     if ([objc_getAssociatedObject(window, "isColorInverted") boolValue]) {

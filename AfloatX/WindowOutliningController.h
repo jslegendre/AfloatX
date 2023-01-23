@@ -11,6 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface WindowOutliningController : NSObject
+@property (strong) NSMenuItem *accentColorItem;
 @property (strong) NSMenuItem *whiteItem;
 @property (strong) NSMenuItem *blackItem;
 @property (strong) NSMenuItem *redItem;
@@ -20,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong) NSMenuItem *orangeItem;
 @property (strong) NSMenuItem *purpleItem;
 @property (strong) NSArray *colorItems;
+@property (strong) NSMenu *menu;
 @end
 
 NS_ASSUME_NONNULL_END

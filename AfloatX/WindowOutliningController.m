@@ -182,6 +182,10 @@
                                                             self.purpleItem,
                                                             nil];
     }
+    
+    self.menu = [NSMenu new];
+    self.menu.itemArray = self.colorItems;
+    
     return self;
 }
 @end
