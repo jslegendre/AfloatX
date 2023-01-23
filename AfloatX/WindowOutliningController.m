@@ -88,6 +88,14 @@
     self.lastColorItem = item;
 }
 
+- (NSColor*)NSAccentColor {
+    return NSColor.controlAccentColor;
+}
+
+- (void)toggleAccentColor:(NSMenuItem *)sender {
+    [self toggleColor:self.NSAccentColor forItem:sender];
+}
+
 - (void)toggleWhiteColor:(NSMenuItem *)sender {
     [self toggleColor:self.NSColorWhite forItem:sender];
 }
@@ -123,6 +131,10 @@
 - (instancetype)init {
     self = [super init];
     if(self) {
+        _savedCornerRadius = 0;
+        _savedBorderWidth = 0;
+        _savedBorderColor = nil;
+        
         self.NSColorWhite = [NSColor whiteColor];
         self.NSColorBlack = [NSColor blackColor];
         self.NSColorRed = [NSColor systemRedColor];
@@ -131,6 +143,9 @@
         self.NSColorYellow = [NSColor systemYellowColor];
         self.NSColorOrange = [NSColor systemOrangeColor];
         self.NSColorPurple = [NSColor systemPurpleColor];
+        
+        self.accentColorItem = [[NSMenuItem alloc] initWithTitle:@"Accent Color" action:@selector(toggleAccentColor:) keyEquivalent:@""];
+        [self.accentColorItem setTarget:self];
 
         self.whiteItem = [[NSMenuItem alloc] initWithTitle:@"White" action:@selector(toggleWhiteColor:) keyEquivalent:@""];
         [self.whiteItem setTarget:self];
@@ -156,7 +171,8 @@
         self.purpleItem = [[NSMenuItem alloc] initWithTitle:@"Purple" action:@selector(togglePurpleColor:) keyEquivalent:@""];
         [self.purpleItem setTarget:self];
         
-        self.colorItems = [[NSArray alloc] initWithObjects: self.whiteItem,
+        self.colorItems = [[NSArray alloc] initWithObjects: self.accentColorItem,
+                                                            self.whiteItem,
                                                             self.blackItem,
                                                             self.redItem,
                                                             self.greenItem,
