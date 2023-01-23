@@ -21,7 +21,11 @@
 @property (assign) NSMenuItem *lastColorItem;
 @end
 
-@implementation WindowOutliningController
+@implementation WindowOutliningController {
+    CGFloat _savedCornerRadius;
+    CGFloat _savedBorderWidth;
+    CGColorRef _savedBorderColor;
+}
 
 - (NSView *)themeFrameToModify {
     return [[[NSWindow topWindow] contentView] superview];
@@ -33,16 +37,50 @@
     return themeFrame.layer;
 }
 
-- (void)toggleColor:(NSColor *)color forItem:(NSMenuItem *)item {
+- (void)addBorderWithColor:(CGColorRef)color  {
     CALayer *layer = [self themeFrameLayer];
-    if(item.state == NSControlStateValueOn) {
-        layer.borderWidth = 0.0f;
-        item.state = NSControlStateValueOff;
-    } else {
-        layer.borderWidth = 1.5;
-        layer.borderColor = color.CGColor;
-        item.state = NSControlStateValueOn;
+    if (self.lastColorItem) {
+        layer.borderColor = color;
+        return;
     }
+    CGFloat cornerRadius = layer.cornerRadius;
+    
+    if (@available(macOS 11, *)) {
+        if (cornerRadius < 10) {
+            layer.cornerRadius = 12;
+        }
+    };
+    
+    _savedCornerRadius = cornerRadius;
+    _savedBorderWidth = layer.borderWidth;
+    if (layer.borderColor) {
+        _savedBorderColor = (CGColorRef)CFRetain(layer.borderColor);
+    }
+    
+    layer.borderWidth = 1.5;
+    layer.borderColor = color;
+}
+
+- (void)restoreBorder {
+    CALayer *layer = [self themeFrameLayer];
+    layer.cornerRadius = _savedCornerRadius;
+    layer.borderWidth = _savedBorderWidth;
+    if (_savedBorderColor) {
+        layer.borderColor = _savedBorderColor;
+        CFRelease(_savedBorderColor);
+    }
+}
+
+- (void)toggleColor:(NSColor *)color forItem:(NSMenuItem *)item {
+    if(item.state == NSControlStateValueOn) {
+        [self restoreBorder];
+        self.lastColorItem = nil;
+        item.state = NSControlStateValueOff;
+        return;
+    }
+    
+    [self addBorderWithColor:color.CGColor];
+    item.state = NSControlStateValueOn;
     
     if(self.lastColorItem)
         self.lastColorItem.state = NSControlStateValueOff;
