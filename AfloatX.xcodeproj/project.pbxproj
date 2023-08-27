@@ -303,6 +303,7 @@
 		09AA56062350FFBE00356916 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ARCHS = (
 					x86_64,
 					arm64e,
@@ -315,22 +316,24 @@
 				CURRENT_PROJECT_VERSION = 1.5;
 				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = "";
-				DSTROOT = /;
+				DSTROOT = "/Library/Application Support/MacEnhance/";
 				ENABLE_STRICT_OBJC_MSGSEND = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = AfloatX/PrefixHeader.pch;
 				INFOPLIST_FILE = AfloatX/Info.plist;
-				INSTALL_PATH = "/Library/Application Support/MacEnhance/Plugins";
+				INSTALL_PATH = Plugins;
 				LLVM_LTO = YES;
 				MACH_O_TYPE = mh_dylib;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MARKETING_VERSION = 1.5;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.jslegendre.AfloatX;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos macosx iphonesimulator iphoneos driverkit appletvsimulator appletvos";
+				SUPPORTS_MACCATALYST = YES;
 				WRAPPER_EXTENSION = bundle;
 			};
 			name = Debug;
@@ -338,6 +341,7 @@
 		09AA56072350FFBE00356916 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ARCHS = (
 					x86_64,
 					arm64e,
@@ -350,23 +354,25 @@
 				CURRENT_PROJECT_VERSION = 1.5;
 				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = "";
-				DSTROOT = /;
+				DSTROOT = "/Library/Application Support/MacEnhance/";
 				ENABLE_STRICT_OBJC_MSGSEND = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = AfloatX/PrefixHeader.pch;
 				INFOPLIST_FILE = AfloatX/Info.plist;
-				INSTALL_PATH = "/Library/Application Support/MacEnhance/Plugins";
+				INSTALL_PATH = Plugins;
 				LLVM_LTO = YES;
 				MACH_O_TYPE = mh_dylib;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MARKETING_VERSION = 1.5;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.jslegendre.AfloatX;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos macosx iphonesimulator iphoneos driverkit appletvsimulator appletvos";
+				SUPPORTS_MACCATALYST = YES;
 				WRAPPER_EXTENSION = bundle;
 			};
 			name = Release;

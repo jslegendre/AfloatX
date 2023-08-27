@@ -13,6 +13,7 @@
 
 @interface NSApplication (Private)
 - (CFArrayRef)_flattenMenu:(NSMenu *)menu flatList:(id)list;
+- (CFArrayRef)_flattenMenu:(NSMenu *)menu flatList:(id)list extraUpdateFlags:(uint32_t)flags;
 @end
 
 #endif /* NSApplication_Private_h */

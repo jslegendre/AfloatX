@@ -32,6 +32,8 @@ NSMenuItem *windowOutlineItem;
 NSArray *afloatXItems;
 CIFilter* colorInvertFilter;
 
+bool onSonomaOrHigher = false;
+
 @implementation AfloatX
 
 + (instancetype)sharedInstance {
@@ -156,56 +158,62 @@ CIFilter* colorInvertFilter;
     if ([blackList containsObject:NSBundle.mainBundle.bundleIdentifier])
         return;
     
-    AfloatX *plugin = [AfloatX sharedInstance];
+    if (NSProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 14) {
+        onSonomaOrHigher = true;
+    }
     
-    colorInvertFilter = [CIFilter filterWithName:@"CIColorInvert"];
-    [colorInvertFilter setDefaults];
-    
-    AfloatXMenu = [NSMenu new];
-    AfloatXItem = [NSMenuItem new];
-    AfloatXItem.title = @"AfloatX";
-    AfloatXSubmenu = [NSMenu new];
-    AfloatXItem.submenu = AfloatXSubmenu;
-    
-    windowOutlineItem = [NSMenuItem new];
-    windowOutlineItem.title = @"Outline Window";
-    
-    floatItem = [[NSMenuItem alloc] initWithTitle:@"Float Window" action:@selector(toggleFloatMainWindow) keyEquivalent:@""];
-    [floatItem setTarget:plugin];
-    
-    dropItem = [[NSMenuItem alloc] initWithTitle:@"Drop Window" action:@selector(toggleDropMainWindow) keyEquivalent:@""];
-    [dropItem setTarget:plugin];
-    
-    transientItem = [[NSMenuItem alloc] initWithTitle:@"Transient Window" action:@selector(toggleTransientMainWindow) keyEquivalent:@""];
-    [transientItem setTarget:plugin];
-    
-    stickyItem = [[NSMenuItem alloc] initWithTitle:@"Sticky Window" action:@selector(toggleStickyMainWindow) keyEquivalent:@""];
-    [stickyItem setTarget:plugin];
-    
-    invertColorItem = [[NSMenuItem alloc] initWithTitle:@"Invert Colors" action:@selector(toggleColorInvert) keyEquivalent:@""];
-    [invertColorItem setTarget:plugin];
-    
-    clickPassthroughItem = [[NSMenuItem alloc] initWithTitle:@"Click-Through Window" action:@selector(toggleEventPassthrough) keyEquivalent:@""];
-    [clickPassthroughItem setTarget:plugin];
-    
-    transparencyItem = [[NSMenuItem alloc] initWithTitle:@"Transparency..." action:@selector(showTransparencySheet) keyEquivalent:@""];
-    [transparencyItem setTarget:plugin];
-    
-    afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
-                    dropItem,
-                    invertColorItem,
-                    stickyItem,
-                    transientItem,
-                    clickPassthroughItem,
-                    windowOutlineItem,
-                    transparencyItem,
-                    nil];
-    
-    for(NSMenuItem *item in afloatXItems)
-        [AfloatXSubmenu addItem:item];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        AfloatX *plugin = [AfloatX sharedInstance];
         
-    [AfloatXMenu addItem:[NSMenuItem separatorItem]];
-    [AfloatXMenu addItem:AfloatXItem];
+        colorInvertFilter = [CIFilter filterWithName:@"CIColorInvert"];
+        [colorInvertFilter setDefaults];
+        
+        AfloatXMenu = [NSMenu new];
+        AfloatXItem = [NSMenuItem new];
+        AfloatXItem.title = @"AfloatX";
+        AfloatXSubmenu = [NSMenu new];
+        AfloatXItem.submenu = AfloatXSubmenu;
+        
+        windowOutlineItem = [NSMenuItem new];
+        windowOutlineItem.title = @"Outline Window";
+        
+        floatItem = [[NSMenuItem alloc] initWithTitle:@"Float Window" action:@selector(toggleFloatMainWindow) keyEquivalent:@""];
+        [floatItem setTarget:plugin];
+        
+        dropItem = [[NSMenuItem alloc] initWithTitle:@"Drop Window" action:@selector(toggleDropMainWindow) keyEquivalent:@""];
+        [dropItem setTarget:plugin];
+        
+        transientItem = [[NSMenuItem alloc] initWithTitle:@"Transient Window" action:@selector(toggleTransientMainWindow) keyEquivalent:@""];
+        [transientItem setTarget:plugin];
+        
+        stickyItem = [[NSMenuItem alloc] initWithTitle:@"Sticky Window" action:@selector(toggleStickyMainWindow) keyEquivalent:@""];
+        [stickyItem setTarget:plugin];
+        
+        invertColorItem = [[NSMenuItem alloc] initWithTitle:@"Invert Colors" action:@selector(toggleColorInvert) keyEquivalent:@""];
+        [invertColorItem setTarget:plugin];
+        
+        clickPassthroughItem = [[NSMenuItem alloc] initWithTitle:@"Click-Through Window" action:@selector(toggleEventPassthrough) keyEquivalent:@""];
+        [clickPassthroughItem setTarget:plugin];
+        
+        transparencyItem = [[NSMenuItem alloc] initWithTitle:@"Transparency..." action:@selector(showTransparencySheet) keyEquivalent:@""];
+        [transparencyItem setTarget:plugin];
+        
+        afloatXItems = [[NSArray alloc] initWithObjects:floatItem,
+                        dropItem,
+                        invertColorItem,
+                        stickyItem,
+                        transientItem,
+                        clickPassthroughItem,
+                        windowOutlineItem,
+                        transparencyItem,
+                        nil];
+        
+        for(NSMenuItem *item in afloatXItems)
+            [AfloatXSubmenu addItem:item];
+            
+        [AfloatXMenu addItem:[NSMenuItem separatorItem]];
+        [AfloatXMenu addItem:AfloatXItem];
+    });
 }
 
 @end
@@ -272,7 +280,12 @@ ZKSwizzleInterface(AXApplication, NSApplication, NSResponder)
     CFArrayRef flatDockMenu = ZKOrig(CFArrayRef, enabled);
     CFArrayAppendArray(finalMenu, flatDockMenu, CFRangeMake(0, CFArrayGetCount(flatDockMenu)));
     CFRelease(flatDockMenu);
-    CFArrayRef flatAfloatXMenu = [(NSApplication*)self _flattenMenu:AfloatXMenu flatList:nil];
+    CFArrayRef flatAfloatXMenu = nil;
+    if (onSonomaOrHigher) {
+        flatAfloatXMenu = [(NSApplication*)self _flattenMenu:AfloatXMenu flatList:nil extraUpdateFlags:0x40000000];
+    } else {
+        flatAfloatXMenu = [(NSApplication*)self _flattenMenu:AfloatXMenu flatList:nil];
+    }
     
     CFArrayAppendArray(finalMenu, flatAfloatXMenu, CFRangeMake(0, CFArrayGetCount(flatAfloatXMenu)));
     CFRelease(flatAfloatXMenu);
